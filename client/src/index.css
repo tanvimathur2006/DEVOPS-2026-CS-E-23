@@ -360,3 +360,41 @@ a {
     padding: 18px;
   }
 }
+
+/* ============================= */
+/* Students */
+/* ============================= */
+
+.students-table-wrapper {
+  width: 100%;
+  overflow-x: auto;
+}
+
+.students-table {
+  width: 100%;
+  border-collapse: collapse;
+  min-width: 700px;
+}
+
+.students-table th,
+.students-table td {
+  padding: 14px 16px;
+  text-align: left;
+  border-bottom: 1px solid #e5e7eb;
+}
+
+.students-table th {
+  background-color: #f8fafc;
+  color: #475569;
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.students-table td {
+  color: #334155;
+  font-size: 14px;
+}
+
+.students-table tbody tr:hover {
+  background-color: #f8fafc;
+}
