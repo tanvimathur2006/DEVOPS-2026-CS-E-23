@@ -1,3 +1,4 @@
+import { Link } from "react-router-dom";
 import students from "../data/studentData";
 
 function Students() {
@@ -13,6 +14,7 @@ function Students() {
             <th>Email</th>
             <th>Branch</th>
             <th>Year</th>
+            <th>Actions</th>
           </tr>
         </thead>
 
@@ -24,6 +26,10 @@ function Students() {
               <td>{student.email}</td>
               <td>{student.branch}</td>
               <td>{student.year}</td>
+              <td>
+                <Link to={`/students/${student.id}`}>View</Link>{" "}
+                <Link to={`/students/${student.id}/edit`}>Edit</Link>
+              </td>
             </tr>
           ))}
         </tbody>
