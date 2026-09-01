@@ -3,7 +3,7 @@ import { render, screen } from "@testing-library/react";
 import { MemoryRouter } from "react-router-dom";
 
 import AddStudent from "./AddStudent";
-import { StudentProvider } from "../context/StudentContext";
+import { StudentProvider } from "../context/StudentContext.jsx";
 
 beforeEach(() => {
   const storage = {};

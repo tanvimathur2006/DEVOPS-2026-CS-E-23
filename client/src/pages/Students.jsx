@@ -1,5 +1,5 @@
 import { Link } from "react-router-dom";
-import { useStudents } from "../context/StudentContext";
+import { useStudents } from "../context/useStudents";
 
 function Students() {
   const { students, deleteStudent } = useStudents();

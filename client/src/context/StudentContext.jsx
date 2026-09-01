@@ -1,7 +1,6 @@
-import { createContext, useContext, useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import initialStudents from "../data/studentData";
-
-const StudentContext = createContext();
+import { StudentContext } from "./StudentContext.js";
 
 export function StudentProvider({ children }) {
   const [students, setStudents] = useState(() => {
@@ -56,8 +55,4 @@ export function StudentProvider({ children }) {
       {children}
     </StudentContext.Provider>
   );
-}
-
-export function useStudents() {
-  return useContext(StudentContext);
 }

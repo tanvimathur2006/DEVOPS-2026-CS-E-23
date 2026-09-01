@@ -8,7 +8,7 @@ import AddStudent from "./pages/AddStudent";
 import EditStudent from "./pages/EditStudent";
 import StudentDetails from "./pages/StudentDetails";
 
-import { StudentProvider } from "./context/StudentContext";
+import { StudentProvider } from "./context/StudentContext.jsx";
 
 function App() {
   return (

@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
-import { useStudents } from "../context/StudentContext";
+import { useStudents } from "../context/useStudents";
 
 function EditStudent() {
   const { id } = useParams();

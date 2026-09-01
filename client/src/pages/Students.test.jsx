@@ -5,7 +5,7 @@ import { MemoryRouter } from "react-router-dom";
 
 import Students from "./Students";
 import students from "../data/studentData";
-import { StudentProvider } from "../context/StudentContext";
+import { StudentProvider } from "../context/StudentContext.jsx";
 
 const renderStudents = () => {
   return render(
