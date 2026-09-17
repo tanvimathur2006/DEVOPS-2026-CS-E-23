@@ -1,7 +1,7 @@
 function StudentDetails() {
   return (
-    <section>
-      <h1>Student Details</h1>
+    <section aria-labelledby="student-details-title">
+      <h1 id="student-details-title">Student Details</h1>
       <p>Student information will appear here.</p>
     </section>
   );
