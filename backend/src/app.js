@@ -1,6 +1,8 @@
 const express = require("express");
 const cors = require("cors");
 
+const studentRoutes = require("./routes/studentRoutes");
+
 const app = express();
 
 app.use(cors());
@@ -12,5 +14,7 @@ app.get("/api/health", (req, res) => {
     message: "Student Management System backend is running",
   });
 });
+
+app.use("/api/students", studentRoutes);
 
 module.exports = app;
