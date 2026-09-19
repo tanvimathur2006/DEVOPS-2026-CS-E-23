@@ -14,61 +14,59 @@ function Dashboard() {
   }, {});
 
   return (
-    <section className="dashboard">
-      <div className="page-header">
+    <section className="dashboard" aria-labelledby="dashboard-heading">
+      <header className="page-header">
         <div>
-          <h1>Dashboard</h1>
+          <h1 id="dashboard-heading">Dashboard</h1>
           <p>Overview of student records.</p>
         </div>
-      </div>
+      </header>
 
-      {/* Statistics Cards */}
-      <div className="stats-grid">
-        <div className="stat-card">
-          <div className="stat-card-icon">👥</div>
+      <div className="stats-grid" aria-label="Student statistics overview">
+        <article className="stat-card" aria-labelledby="total-students-label">
+          <div className="stat-card-icon" aria-hidden="true">👥</div>
 
           <div>
-            <p>Total Students</p>
+            <p id="total-students-label">Total Students</p>
             <h2>{totalStudents}</h2>
           </div>
-        </div>
+        </article>
 
-        <div className="stat-card">
-          <div className="stat-card-icon">💻</div>
+        <article className="stat-card" aria-labelledby="computer-science-label">
+          <div className="stat-card-icon" aria-hidden="true">💻</div>
 
           <div>
-            <p>Computer Science</p>
+            <p id="computer-science-label">Computer Science</p>
             <h2>{branchCounts["Computer Science"] || 0}</h2>
           </div>
-        </div>
+        </article>
 
-        <div className="stat-card">
-          <div className="stat-card-icon">📡</div>
+        <article className="stat-card" aria-labelledby="electronics-label">
+          <div className="stat-card-icon" aria-hidden="true">📡</div>
 
           <div>
-            <p>Electronics</p>
+            <p id="electronics-label">Electronics</p>
             <h2>{branchCounts["Electronics"] || 0}</h2>
           </div>
-        </div>
+        </article>
 
-        <div className="stat-card">
-          <div className="stat-card-icon">⚙️</div>
+        <article className="stat-card" aria-labelledby="mechanical-label">
+          <div className="stat-card-icon" aria-hidden="true">⚙️</div>
 
           <div>
-            <p>Mechanical</p>
+            <p id="mechanical-label">Mechanical</p>
             <h2>{branchCounts["Mechanical"] || 0}</h2>
           </div>
-        </div>
+        </article>
       </div>
 
-      {/* Branch and Year Statistics */}
       <div className="dashboard-grid">
-        <div className="dashboard-card">
+        <section className="dashboard-card" aria-labelledby="students-by-branch-heading">
           <div className="card-header">
-            <h2>Students by Branch</h2>
+            <h2 id="students-by-branch-heading">Students by Branch</h2>
           </div>
 
-          <div className="bar-list">
+          <div className="bar-list" aria-label="Branch distribution chart">
             {Object.entries(branchCounts).map(([branch, count]) => (
               <div className="bar-item" key={branch}>
                 <div className="bar-label">
@@ -76,7 +74,7 @@ function Dashboard() {
                   <strong>{count}</strong>
                 </div>
 
-                <div className="bar-background">
+                <div className="bar-background" aria-hidden="true">
                   <div
                     className="bar-fill"
                     style={{
@@ -87,14 +85,14 @@ function Dashboard() {
               </div>
             ))}
           </div>
-        </div>
+        </section>
 
-        <div className="dashboard-card">
+        <section className="dashboard-card" aria-labelledby="students-by-year-heading">
           <div className="card-header">
-            <h2>Students by Year</h2>
+            <h2 id="students-by-year-heading">Students by Year</h2>
           </div>
 
-          <div className="year-list">
+          <div className="year-list" aria-label="Year distribution overview">
             {Object.entries(yearCounts).map(([year, count]) => (
               <div className="year-item" key={year}>
                 <span>{year}</span>
@@ -102,19 +100,18 @@ function Dashboard() {
               </div>
             ))}
           </div>
-        </div>
+        </section>
       </div>
 
-      {/* Recent Students */}
-      <div className="dashboard-card recent-students">
+      <section className="dashboard-card recent-students" aria-labelledby="recent-students-heading">
         <div className="card-header">
-          <h2>Recent Students</h2>
+          <h2 id="recent-students-heading">Recent Students</h2>
         </div>
 
-        <div className="recent-student-list">
+        <div className="recent-student-list" aria-label="Recent student list">
           {students.slice(0, 5).map((student) => (
             <div className="recent-student" key={student.id}>
-              <div className="student-avatar">
+              <div className="student-avatar" aria-hidden="true">
                 {student.name.charAt(0)}
               </div>
 
@@ -127,7 +124,7 @@ function Dashboard() {
             </div>
           ))}
         </div>
-      </div>
+      </section>
     </section>
   );
 }
