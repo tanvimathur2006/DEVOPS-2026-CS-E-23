@@ -8,19 +8,29 @@ import AddStudent from "./pages/AddStudent";
 import EditStudent from "./pages/EditStudent";
 import StudentDetails from "./pages/StudentDetails";
 
+import { StudentProvider } from "./context/StudentContext.jsx";
+
 function App() {
   return (
-    <BrowserRouter>
-      <Routes>
-        <Route element={<Layout />}>
-          <Route path="/" element={<Dashboard />} />
-          <Route path="/students" element={<Students />} />
-          <Route path="/students/add" element={<AddStudent />} />
-          <Route path="/students/:id/edit" element={<EditStudent />} />
-          <Route path="/students/:id" element={<StudentDetails />} />
-        </Route>
-      </Routes>
-    </BrowserRouter>
+    <StudentProvider>
+      <BrowserRouter>
+        <Routes>
+          <Route element={<Layout />}>
+            <Route path="/" element={<Dashboard />} />
+            <Route path="/students" element={<Students />} />
+            <Route path="/students/add" element={<AddStudent />} />
+            <Route
+              path="/students/:id/edit"
+              element={<EditStudent />}
+            />
+            <Route
+              path="/students/:id"
+              element={<StudentDetails />}
+            />
+          </Route>
+        </Routes>
+      </BrowserRouter>
+    </StudentProvider>
   );
 }
 
