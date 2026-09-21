@@ -1,12 +1,12 @@
 import { Link, useParams } from "react-router-dom";
-import students from "../data/studentData";
+import { useContext } from "react";
+import { StudentContext } from "../context/StudentContext.js";
 
 function StudentDetails() {
   const { id } = useParams();
+  const { getStudentById } = useContext(StudentContext);
 
-  const student = students.find(
-    (student) => student.id === Number(id)
-  );
+  const student = getStudentById(id);
 
   if (!student) {
     return (

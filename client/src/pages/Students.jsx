@@ -1,14 +1,16 @@
 import { Link } from "react-router-dom";
-import students from "../data/studentData";
+import { useStudents } from "../context/useStudents";
 
 function Students() {
+  const { students, deleteStudent } = useStudents();
+
   const handleDelete = (id) => {
     const confirmed = window.confirm(
       "Are you sure you want to delete this student?"
     );
 
     if (confirmed) {
-      console.log("Delete student:", id);
+      deleteStudent(id);
     }
   };
 
@@ -18,7 +20,7 @@ function Students() {
         <h1 id="students-heading">Students</h1>
 
         <div role="status" aria-live="polite">
-          <p>No students found.</p>
+          <p>No student records found.</p>
           <p>There are no student records available yet.</p>
           <Link to="/students/add">Add a student</Link>
         </div>
@@ -56,8 +58,12 @@ function Students() {
                 <td>{student.branch}</td>
                 <td>{student.year}</td>
                 <td>
-                  <Link to={`/students/${student.id}`}>View</Link>{" "}
-                  <Link to={`/students/${student.id}/edit`}>Edit</Link>{" "}
+                  <Link to={`/students/${student.id}`}>
+                    View
+                  </Link>{" "}
+                  <Link to={`/students/${student.id}/edit`}>
+                    Edit
+                  </Link>{" "}
                   <button
                     type="button"
                     onClick={() => handleDelete(student.id)}
