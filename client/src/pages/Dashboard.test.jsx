@@ -5,6 +5,7 @@ import {
   it,
   vi,
 } from "vitest";
+
 import {
   render,
   screen,
@@ -65,17 +66,11 @@ describe("Dashboard page", () => {
   it("displays the total number of students", () => {
     renderDashboard();
 
-    expect(
-      screen.getByText("Total Students")
-    ).toBeInTheDocument();
-
     const totalStudentsCard = screen
       .getByText("Total Students")
       .closest(".stat-card");
 
-    expect(
-      totalStudentsCard
-    ).toBeInTheDocument();
+    expect(totalStudentsCard).toBeInTheDocument();
 
     expect(
       within(totalStudentsCard).getByRole(
@@ -97,9 +92,7 @@ describe("Dashboard page", () => {
       })
       .closest(".dashboard-card");
 
-    expect(
-      branchSection
-    ).toBeInTheDocument();
+    expect(branchSection).toBeInTheDocument();
 
     const branchCounts = students.reduce(
       (counts, student) => {
@@ -113,9 +106,7 @@ describe("Dashboard page", () => {
 
     Object.entries(branchCounts).forEach(
       ([branch, count]) => {
-        const branchItem = within(
-          branchSection
-        )
+        const branchItem = within(branchSection)
           .getByText(branch)
           .closest(".bar-item");
 
@@ -144,9 +135,7 @@ describe("Dashboard page", () => {
       })
       .closest(".dashboard-card");
 
-    expect(
-      yearSection
-    ).toBeInTheDocument();
+    expect(yearSection).toBeInTheDocument();
 
     const yearCounts = students.reduce(
       (counts, student) => {
@@ -160,9 +149,7 @@ describe("Dashboard page", () => {
 
     Object.entries(yearCounts).forEach(
       ([year, count]) => {
-        const yearItem = within(
-          yearSection
-        )
+        const yearItem = within(yearSection)
           .getByText(year)
           .closest(".year-item");
 
@@ -202,5 +189,43 @@ describe("Dashboard page", () => {
         )
       ).toBeInTheDocument();
     });
+  });
+
+  it("calculates the correct branch bar width", () => {
+    renderDashboard();
+
+    const branchSection = screen
+      .getByRole("heading", {
+        name: "Students by Branch",
+      })
+      .closest(".dashboard-card");
+
+    const branchCounts = students.reduce(
+      (counts, student) => {
+        counts[student.branch] =
+          (counts[student.branch] || 0) + 1;
+
+        return counts;
+      },
+      {}
+    );
+
+    Object.entries(branchCounts).forEach(
+      ([branch, count]) => {
+        const branchItem = within(branchSection)
+          .getByText(branch)
+          .closest(".bar-item");
+
+        const barFill =
+          branchItem.querySelector(".bar-fill");
+
+        const expectedWidth =
+          `${(count / students.length) * 100}%`;
+
+        expect(barFill).toHaveStyle({
+          width: expectedWidth,
+        });
+      }
+    );
   });
 });

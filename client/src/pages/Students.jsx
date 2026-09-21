@@ -14,71 +14,67 @@ function Students() {
     }
   };
 
-  return (
-    <section>
-      <div className="page-header">
-        <div>
-          <h1>Students</h1>
-          <p>Manage and view all student records.</p>
-        </div>
-      </div>
+  if (students.length === 0) {
+    return (
+      <section aria-labelledby="students-heading">
+        <h1 id="students-heading">Students</h1>
 
-      <div className="dashboard-card">
-        <div className="card-header">
-          <h2>Student Records</h2>
-        </div>
-
-        {students.length === 0 ? (
+        <div role="status" aria-live="polite">
           <p>No student records found.</p>
-        ) : (
-          <div className="students-table-wrapper">
-            <table className="students-table">
-              <thead>
-                <tr>
-                  <th>Student ID</th>
-                  <th>Name</th>
-                  <th>Email</th>
-                  <th>Branch</th>
-                  <th>Year</th>
-                  <th>Actions</th>
-                </tr>
-              </thead>
+          <p>There are no student records available yet.</p>
+          <Link to="/students/add">Add a student</Link>
+        </div>
+      </section>
+    );
+  }
 
-              <tbody>
-                {students.map((student) => (
-                  <tr key={student.id}>
-                    <td>{student.studentId}</td>
-                    <td>{student.name}</td>
-                    <td>{student.email}</td>
-                    <td>{student.branch}</td>
-                    <td>{student.year}</td>
+  return (
+    <section aria-labelledby="students-heading">
+      <h1 id="students-heading">Students</h1>
 
-                    <td>
-                      <Link to={`/students/${student.id}`}>
-                        View
-                      </Link>
+      <div
+        className="table-responsive"
+        role="region"
+        aria-label="Student records table"
+      >
+        <table className="data-table">
+          <thead>
+            <tr>
+              <th scope="col">Student ID</th>
+              <th scope="col">Name</th>
+              <th scope="col">Email</th>
+              <th scope="col">Branch</th>
+              <th scope="col">Year</th>
+              <th scope="col">Actions</th>
+            </tr>
+          </thead>
 
-                      {" "}
-
-                      <Link to={`/students/${student.id}/edit`}>
-                        Edit
-                      </Link>
-
-                      {" "}
-
-                      <button
-                        type="button"
-                        onClick={() => handleDelete(student.id)}
-                      >
-                        Delete
-                      </button>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        )}
+          <tbody>
+            {students.map((student) => (
+              <tr key={student.id}>
+                <th scope="row">{student.studentId}</th>
+                <td>{student.name}</td>
+                <td>{student.email}</td>
+                <td>{student.branch}</td>
+                <td>{student.year}</td>
+                <td>
+                  <Link to={`/students/${student.id}`}>
+                    View
+                  </Link>{" "}
+                  <Link to={`/students/${student.id}/edit`}>
+                    Edit
+                  </Link>{" "}
+                  <button
+                    type="button"
+                    onClick={() => handleDelete(student.id)}
+                  >
+                    Delete
+                  </button>
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
       </div>
     </section>
   );
