@@ -6,11 +6,28 @@ export function StudentProvider({ children }) {
   const [students, setStudents] = useState(() => {
     const savedStudents = localStorage.getItem("students");
 
-    return savedStudents ? JSON.parse(savedStudents) : initialStudents;
+    if (!savedStudents) {
+      return initialStudents;
+    }
+
+    try {
+      const parsedStudents = JSON.parse(savedStudents);
+
+      if (!Array.isArray(parsedStudents)) {
+        return initialStudents;
+      }
+
+      return parsedStudents;
+    } catch {
+      return initialStudents;
+    }
   });
 
   useEffect(() => {
-    localStorage.setItem("students", JSON.stringify(students));
+    localStorage.setItem(
+      "students",
+      JSON.stringify(students)
+    );
   }, [students]);
 
   const addStudent = (student) => {
@@ -32,7 +49,9 @@ export function StudentProvider({ children }) {
 
   const deleteStudent = (id) => {
     setStudents((currentStudents) =>
-      currentStudents.filter((student) => student.id !== id)
+      currentStudents.filter(
+        (student) => student.id !== id
+      )
     );
   };
 

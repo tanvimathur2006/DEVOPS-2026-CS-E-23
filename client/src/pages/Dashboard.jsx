@@ -1,15 +1,21 @@
-import students from "../data/studentData";
+import { useStudents } from "../context/useStudents";
 
 function Dashboard() {
+  const { students } = useStudents();
+
   const totalStudents = students.length;
 
   const branchCounts = students.reduce((counts, student) => {
-    counts[student.branch] = (counts[student.branch] || 0) + 1;
+    counts[student.branch] =
+      (counts[student.branch] || 0) + 1;
+
     return counts;
   }, {});
 
   const yearCounts = students.reduce((counts, student) => {
-    counts[student.year] = (counts[student.year] || 0) + 1;
+    counts[student.year] =
+      (counts[student.year] || 0) + 1;
+
     return counts;
   }, {});
 
@@ -38,7 +44,9 @@ function Dashboard() {
 
           <div>
             <p>Computer Science</p>
-            <h2>{branchCounts["Computer Science"] || 0}</h2>
+            <h2>
+              {branchCounts["Computer Science"] || 0}
+            </h2>
           </div>
         </div>
 
@@ -47,7 +55,9 @@ function Dashboard() {
 
           <div>
             <p>Electronics</p>
-            <h2>{branchCounts["Electronics"] || 0}</h2>
+            <h2>
+              {branchCounts["Electronics"] || 0}
+            </h2>
           </div>
         </div>
 
@@ -56,7 +66,9 @@ function Dashboard() {
 
           <div>
             <p>Mechanical</p>
-            <h2>{branchCounts["Mechanical"] || 0}</h2>
+            <h2>
+              {branchCounts["Mechanical"] || 0}
+            </h2>
           </div>
         </div>
       </div>
@@ -69,23 +81,32 @@ function Dashboard() {
           </div>
 
           <div className="bar-list">
-            {Object.entries(branchCounts).map(([branch, count]) => (
-              <div className="bar-item" key={branch}>
-                <div className="bar-label">
-                  <span>{branch}</span>
-                  <strong>{count}</strong>
-                </div>
+            {Object.entries(branchCounts).map(
+              ([branch, count]) => (
+                <div
+                  className="bar-item"
+                  key={branch}
+                >
+                  <div className="bar-label">
+                    <span>{branch}</span>
+                    <strong>{count}</strong>
+                  </div>
 
-                <div className="bar-background">
-                  <div
-                    className="bar-fill"
-                    style={{
-                      width: `${(count / totalStudents) * 100}%`,
-                    }}
-                  ></div>
+                  <div className="bar-background">
+                    <div
+                      className="bar-fill"
+                      style={{
+                        width: `${
+                          totalStudents > 0
+                            ? (count / totalStudents) * 100
+                            : 0
+                        }%`,
+                      }}
+                    ></div>
+                  </div>
                 </div>
-              </div>
-            ))}
+              )
+            )}
           </div>
         </div>
 
@@ -95,12 +116,17 @@ function Dashboard() {
           </div>
 
           <div className="year-list">
-            {Object.entries(yearCounts).map(([year, count]) => (
-              <div className="year-item" key={year}>
-                <span>{year}</span>
-                <strong>{count}</strong>
-              </div>
-            ))}
+            {Object.entries(yearCounts).map(
+              ([year, count]) => (
+                <div
+                  className="year-item"
+                  key={year}
+                >
+                  <span>{year}</span>
+                  <strong>{count}</strong>
+                </div>
+              )
+            )}
           </div>
         </div>
       </div>
@@ -113,15 +139,20 @@ function Dashboard() {
 
         <div className="recent-student-list">
           {students.slice(0, 5).map((student) => (
-            <div className="recent-student" key={student.id}>
+            <div
+              className="recent-student"
+              key={student.id}
+            >
               <div className="student-avatar">
                 {student.name.charAt(0)}
               </div>
 
               <div>
                 <h3>{student.name}</h3>
+
                 <p>
-                  {student.studentId} • {student.branch}
+                  {student.studentId} •{" "}
+                  {student.branch}
                 </p>
               </div>
             </div>

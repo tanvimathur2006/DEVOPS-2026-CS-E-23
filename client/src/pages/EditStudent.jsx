@@ -40,6 +40,8 @@ function EditStudent() {
     };
   });
 
+  const [error, setError] = useState("");
+
   if (!student) {
     return (
       <section>
@@ -60,14 +62,61 @@ function EditStudent() {
       ...currentData,
       [name]: value,
     }));
+
+    setError("");
+  };
+
+  const validateForm = () => {
+    const textFields = [
+      "studentId",
+      "name",
+      "phone",
+      "address",
+    ];
+
+    for (const field of textFields) {
+      if (!formData[field].trim()) {
+        return "Please fill in all required fields.";
+      }
+    }
+
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email)) {
+      return "Please enter a valid email address.";
+    }
+
+    if (!/^\d{10}$/.test(formData.phone.trim())) {
+      return "Please enter a valid 10-digit phone number.";
+    }
+
+    if (!formData.branch || !formData.year || !formData.gender) {
+      return "Please fill in all required fields.";
+    }
+
+    if (!formData.dateOfBirth) {
+      return "Please fill in all required fields.";
+    }
+
+    return "";
   };
 
   const handleSubmit = (event) => {
     event.preventDefault();
 
+    const validationError = validateForm();
+
+    if (validationError) {
+      setError(validationError);
+      return;
+    }
+
     updateStudent({
       id: student.id,
       ...formData,
+      studentId: formData.studentId.trim(),
+      name: formData.name.trim(),
+      email: formData.email.trim(),
+      phone: formData.phone.trim(),
+      address: formData.address.trim(),
     });
 
     navigate(`/students/${student.id}`);
@@ -86,6 +135,12 @@ function EditStudent() {
         <div className="card-header">
           <h2>Student Information</h2>
         </div>
+
+        {error && (
+          <p role="alert">
+            {error}
+          </p>
+        )}
 
         <form onSubmit={handleSubmit}>
           <div>
