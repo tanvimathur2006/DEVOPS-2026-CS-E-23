@@ -1,16 +1,54 @@
 import { Link } from "react-router-dom";
-import students from "../data/studentData";
+import { useStudents } from "../context/useStudents";
 
 function Students() {
-  const handleDelete = (id) => {
+  const {
+    students,
+    loading,
+    error,
+    deleteStudent,
+  } = useStudents();
+
+  const handleDelete = async (id) => {
     const confirmed = window.confirm(
       "Are you sure you want to delete this student?"
     );
 
-    if (confirmed) {
-      console.log("Delete student:", id);
+    if (!confirmed) {
+      return;
+    }
+
+    try {
+      await deleteStudent(id);
+    } catch (err) {
+      // The context stores the API error.
     }
   };
+
+  if (loading) {
+    return (
+      <section aria-labelledby="students-heading">
+        <h1 id="students-heading">Students</h1>
+        <p role="status">Loading students...</p>
+      </section>
+    );
+  }
+
+  if (error) {
+    return (
+      <section aria-labelledby="students-heading">
+        <h1 id="students-heading">Students</h1>
+
+        <div role="alert">
+          <p>Unable to load students.</p>
+          <p>{error}</p>
+          <button type="button" onClick={() => window.location.reload()}>
+            Try Again
+          </button>
+        </div>
+      </section>
+    );
+  }
 
   if (students.length === 0) {
     return (
@@ -28,7 +66,14 @@ function Students() {
 
   return (
     <section aria-labelledby="students-heading">
-      <h1 id="students-heading">Students</h1>
+      <div className="page-header">
+        <div>
+          <h1 id="students-heading">Students</h1>
+          <p>Manage student records.</p>
+        </div>
+
+        <Link to="/students/add">Add Student</Link>
+      </div>
 
       <div
         className="table-responsive"
@@ -56,8 +101,12 @@ function Students() {
                 <td>{student.branch}</td>
                 <td>{student.year}</td>
                 <td>
-                  <Link to={`/students/${student.id}`}>View</Link>{" "}
-                  <Link to={`/students/${student.id}/edit`}>Edit</Link>{" "}
+                  <Link to={`/students/${student.id}`}>
+                    View
+                  </Link>{" "}
+                  <Link to={`/students/${student.id}/edit`}>
+                    Edit
+                  </Link>{" "}
                   <button
                     type="button"
                     onClick={() => handleDelete(student.id)}

@@ -27,21 +27,18 @@ function AddStudent() {
     }));
   };
 
-  const handleSubmit = (event) => {
-    event.preventDefault();
+ const handleSubmit = async (event) => {
+  event.preventDefault();
 
-    const newStudent = {
-      id:
-        students.length > 0
-          ? Math.max(...students.map((student) => student.id)) + 1
-          : 1,
-      ...formData,
-    };
-
-    addStudent(newStudent);
-
-    navigate("/students");
+  try {
+      await addStudent(formData);
+      navigate("/students");
+    } catch (error) {
+      // StudentContext stores the error.
+    }
   };
+
+
 
   return (
     <section>

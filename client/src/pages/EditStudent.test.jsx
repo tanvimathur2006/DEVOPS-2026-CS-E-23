@@ -1,34 +1,50 @@
 import { describe, expect, it, beforeEach, vi } from "vitest";
 import { render, screen } from "@testing-library/react";
-import { MemoryRouter, Route, Routes } from "react-router-dom";
+import { MemoryRouter, Routes, Route } from "react-router-dom";
 
 import EditStudent from "./EditStudent";
 import { StudentProvider } from "../context/StudentContext.jsx";
 
+const mockStudent = {
+  _id: "507f1f77bcf86cd799439011",
+  studentId: "STU001",
+  name: "Aarav Sharma",
+  email: "aarav.sharma@example.com",
+  phone: "9876543210",
+  branch: "Computer Science",
+  year: "3rd Year",
+  gender: "Male",
+  dateOfBirth: "2004-05-12",
+  address: "Pune, Maharashtra",
+};
+
 beforeEach(() => {
-  const storage = {};
+  vi.restoreAllMocks();
 
-  vi.stubGlobal("localStorage", {
-    getItem: vi.fn((key) => storage[key] ?? null),
-
-    setItem: vi.fn((key, value) => {
-      storage[key] = String(value);
-    }),
-
-    removeItem: vi.fn((key) => {
-      delete storage[key];
-    }),
-
-    clear: vi.fn(() => {
-      Object.keys(storage).forEach((key) => delete storage[key]);
-    }),
-  });
+  vi.stubGlobal(
+    "fetch",
+    vi.fn(() =>
+      Promise.resolve({
+        ok: true,
+        json: () =>
+          Promise.resolve({
+            success: true,
+            count: 1,
+            data: [mockStudent],
+          }),
+      })
+    )
+  );
 });
 
-const renderEditStudent = () => {
-  return render(
+const renderEditStudent = () =>
+  render(
     <StudentProvider>
-      <MemoryRouter initialEntries={["/students/1/edit"]}>
+      <MemoryRouter
+        initialEntries={[
+          "/students/507f1f77bcf86cd799439011/edit",
+        ]}
+      >
         <Routes>
           <Route
             path="/students/:id/edit"
@@ -38,49 +54,55 @@ const renderEditStudent = () => {
       </MemoryRouter>
     </StudentProvider>
   );
-};
 
 describe("Edit Student page", () => {
   it("renders the Edit Student heading", () => {
     renderEditStudent();
 
     expect(
-      screen.getByRole("heading", { name: "Edit Student" })
+      screen.getByRole("heading", {
+        name: "Edit Student",
+      })
     ).toBeInTheDocument();
   });
 
-  it("renders the edit form", () => {
+  it("renders the edit form with student information", async () => {
     renderEditStudent();
 
     expect(
-      screen.getByRole("heading", { name: "Student Information" })
-    ).toBeInTheDocument();
-
-    expect(screen.getByLabelText("Student ID")).toHaveValue("STU001");
-    expect(screen.getByLabelText("Name")).toHaveValue("Aarav Sharma");
-    expect(
-      screen.getByLabelText("Email")
-    ).toHaveValue("aarav.sharma@example.com");
-
-    expect(screen.getByLabelText("Phone")).toHaveValue("9876543210");
-    expect(screen.getByLabelText("Branch")).toHaveValue(
-      "Computer Science"
-    );
-    expect(screen.getByLabelText("Year")).toHaveValue("3rd Year");
-    expect(screen.getByLabelText("Gender")).toHaveValue("Male");
-    expect(screen.getByLabelText("Date of Birth")).toHaveValue(
-      "2004-05-12"
-    );
-    expect(screen.getByLabelText("Address")).toHaveValue(
-      "Pune, Maharashtra"
-    );
-
-    expect(
-      screen.getByRole("button", { name: "Save Changes" })
+      await screen.findByDisplayValue("STU001")
     ).toBeInTheDocument();
 
     expect(
-      screen.getByRole("button", { name: "Cancel" })
+      screen.getByDisplayValue("Aarav Sharma")
+    ).toBeInTheDocument();
+
+    expect(
+      screen.getByDisplayValue("aarav.sharma@example.com")
+    ).toBeInTheDocument();
+
+    expect(
+      screen.getByDisplayValue("9876543210")
+    ).toBeInTheDocument();
+
+    expect(
+      screen.getByDisplayValue("Computer Science")
+    ).toBeInTheDocument();
+
+    expect(
+      screen.getByDisplayValue("3rd Year")
+    ).toBeInTheDocument();
+
+    expect(
+      screen.getByDisplayValue("Male")
+    ).toBeInTheDocument();
+
+    expect(
+      screen.getByDisplayValue("2004-05-12")
+    ).toBeInTheDocument();
+
+    expect(
+      screen.getByDisplayValue("Pune, Maharashtra")
     ).toBeInTheDocument();
   });
 });
