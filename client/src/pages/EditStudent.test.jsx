@@ -1,3 +1,4 @@
+
 import { describe, expect, it, beforeEach, vi } from "vitest";
 import {
   fireEvent,
@@ -13,30 +14,46 @@ import {
 import EditStudent from "./EditStudent";
 import { StudentProvider } from "../context/StudentContext.jsx";
 
+const mockStudent = {
+  _id: "507f1f77bcf86cd799439011",
+  studentId: "STU001",
+  name: "Aarav Sharma",
+  email: "aarav.sharma@example.com",
+  phone: "9876543210",
+  branch: "Computer Science",
+  year: "3rd Year",
+  gender: "Male",
+  dateOfBirth: "2004-05-12",
+  address: "Pune, Maharashtra",
+};
+
 beforeEach(() => {
-  const storage = {};
+  vi.restoreAllMocks();
 
-  vi.stubGlobal("localStorage", {
-    getItem: vi.fn((key) => storage[key] ?? null),
-
-    setItem: vi.fn((key, value) => {
-      storage[key] = String(value);
-    }),
-
-    removeItem: vi.fn((key) => {
-      delete storage[key];
-    }),
-
-    clear: vi.fn(() => {
-      Object.keys(storage).forEach((key) => delete storage[key]);
-    }),
-  });
+  vi.stubGlobal(
+    "fetch",
+    vi.fn(() =>
+      Promise.resolve({
+        ok: true,
+        json: () =>
+          Promise.resolve({
+            success: true,
+            count: 1,
+            data: [mockStudent],
+          }),
+      })
+    )
+  );
 });
 
-const renderEditStudent = () => {
-  return render(
+const renderEditStudent = () =>
+  render(
     <StudentProvider>
-      <MemoryRouter initialEntries={["/students/1/edit"]}>
+      <MemoryRouter
+        initialEntries={[
+          "/students/507f1f77bcf86cd799439011/edit",
+        ]}
+      >
         <Routes>
           <Route
             path="/students/:id/edit"
@@ -46,7 +63,6 @@ const renderEditStudent = () => {
       </MemoryRouter>
     </StudentProvider>
   );
-};
 
 const renderEditStudentWithInvalidId = () => {
   return render(
@@ -76,14 +92,10 @@ describe("Edit Student page", () => {
     ).toBeInTheDocument();
   });
 
-  it("renders the edit form", () => {
+  it("renders the edit form with student information", async () => {
     renderEditStudent();
 
-    expect(
-      screen.getByRole("heading", {
-        name: "Student Information",
-      })
-    ).toBeInTheDocument();
+    await screen.findByDisplayValue("STU001");
 
     expect(
       screen.getByLabelText("Student ID")
@@ -95,9 +107,7 @@ describe("Edit Student page", () => {
 
     expect(
       screen.getByLabelText("Email")
-    ).toHaveValue(
-      "aarav.sharma@example.com"
-    );
+    ).toHaveValue("aarav.sharma@example.com");
 
     expect(
       screen.getByLabelText("Phone")
@@ -136,10 +146,12 @@ describe("Edit Student page", () => {
     ).toBeInTheDocument();
   });
 
-  it("shows an error when a required field is cleared", () => {
+  it("shows an error when a required field is cleared", async () => {
     renderEditStudent();
 
-    const nameInput = screen.getByLabelText("Name");
+    const nameInput = await screen.findByDisplayValue(
+      "Aarav Sharma"
+    );
 
     fireEvent.change(nameInput, {
       target: { value: "" },
@@ -160,15 +172,16 @@ describe("Edit Student page", () => {
     );
   });
 
-  it("rejects an invalid phone number", () => {
+  it("rejects an invalid phone number", async () => {
     renderEditStudent();
 
-    fireEvent.change(
-      screen.getByLabelText("Phone"),
-      {
-        target: { value: "123" },
-      }
+    const phoneInput = await screen.findByDisplayValue(
+      "9876543210"
     );
+
+    fireEvent.change(phoneInput, {
+      target: { value: "123" },
+    });
 
     const form = screen
       .getByRole("button", {
@@ -185,15 +198,16 @@ describe("Edit Student page", () => {
     );
   });
 
-  it("rejects whitespace-only address", () => {
+  it("rejects whitespace-only address", async () => {
     renderEditStudent();
 
-    fireEvent.change(
-      screen.getByLabelText("Address"),
-      {
-        target: { value: "   " },
-      }
+    const addressInput = await screen.findByDisplayValue(
+      "Pune, Maharashtra"
     );
+
+    fireEvent.change(addressInput, {
+      target: { value: "   " },
+    });
 
     const form = screen
       .getByRole("button", {
@@ -210,14 +224,12 @@ describe("Edit Student page", () => {
     );
   });
 
-  it("shows Student Not Found for an invalid student ID", () => {
+  it("shows Student Not Found for an invalid student ID", async () => {
     renderEditStudentWithInvalidId();
 
-    expect(
-      screen.getByRole("heading", {
-        name: "Student Not Found",
-      })
-    ).toBeInTheDocument();
+    await screen.findByRole("heading", {
+      name: "Student Not Found",
+    });
 
     expect(
       screen.getByText(
@@ -226,8 +238,12 @@ describe("Edit Student page", () => {
     ).toBeInTheDocument();
   });
 
-  it("does not show the edit form for an invalid student ID", () => {
+  it("does not show the edit form for an invalid student ID", async () => {
     renderEditStudentWithInvalidId();
+
+    await screen.findByRole("heading", {
+      name: "Student Not Found",
+    });
 
     expect(
       screen.queryByRole("heading", {

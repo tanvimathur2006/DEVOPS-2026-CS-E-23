@@ -1,10 +1,45 @@
 import { Link, useParams } from "react-router-dom";
-import { useContext } from "react";
-import { StudentContext } from "../context/StudentContext.js";
+import { useStudents } from "../context/useStudents";
 
 function StudentDetails() {
   const { id } = useParams();
-  const { getStudentById } = useContext(StudentContext);
+
+  const {
+    loading,
+    error,
+    getStudentById,
+  } = useStudents();
+
+  if (loading) {
+    return (
+      <section>
+        <div className="page-header">
+          <h1>Student Details</h1>
+        </div>
+
+        <p role="status">Loading student details...</p>
+      </section>
+    );
+  }
+
+  if (error) {
+    return (
+      <section>
+        <div className="page-header">
+          <h1>Student Details</h1>
+        </div>
+
+        <div role="alert">
+          <p>Unable to load student details.</p>
+          <p>{error}</p>
+        </div>
+
+        <Link to="/students" className="back-link">
+          ← Back to Students
+        </Link>
+      </section>
+    );
+  }
 
   const student = getStudentById(id);
 
@@ -94,6 +129,13 @@ function StudentDetails() {
         <div className="student-details-actions">
           <Link to="/students" className="back-link">
             ← Back to Students
+          </Link>
+
+          <Link
+            to={`/students/${student.id}/edit`}
+            className="back-link"
+          >
+            Edit Student
           </Link>
         </div>
       </div>

@@ -1,3 +1,4 @@
+
 import {
   describe,
   expect,
@@ -9,32 +10,54 @@ import {
   fireEvent,
   render,
   screen,
+  waitFor,
 } from "@testing-library/react";
 import { MemoryRouter } from "react-router-dom";
 
 import AddStudent from "./AddStudent";
 import { StudentProvider } from "../context/StudentContext.jsx";
 
+const newStudent = {
+  _id: "507f1f77bcf86cd799439099",
+  studentId: "STU999",
+  name: "Test Student",
+  email: "test@example.com",
+  phone: "9876543210",
+  branch: "Computer Science",
+  year: "1st Year",
+  gender: "Male",
+  dateOfBirth: "2005-01-01",
+  address: "Test Address",
+};
+
 beforeEach(() => {
-  const storage = {};
+  vi.restoreAllMocks();
 
-  vi.stubGlobal("localStorage", {
-    getItem: vi.fn((key) => storage[key] ?? null),
+  vi.stubGlobal(
+    "fetch",
+    vi.fn((url, options = {}) => {
+      if (options.method === "POST") {
+        return Promise.resolve({
+          ok: true,
+          json: () =>
+            Promise.resolve({
+              success: true,
+              data: newStudent,
+            }),
+        });
+      }
 
-    setItem: vi.fn((key, value) => {
-      storage[key] = String(value);
-    }),
-
-    removeItem: vi.fn((key) => {
-      delete storage[key];
-    }),
-
-    clear: vi.fn(() => {
-      Object.keys(storage).forEach(
-        (key) => delete storage[key]
-      );
-    }),
-  });
+      return Promise.resolve({
+        ok: true,
+        json: () =>
+          Promise.resolve({
+            success: true,
+            count: 0,
+            data: [],
+          }),
+      });
+    })
+  );
 });
 
 const renderAddStudent = () => {
@@ -48,72 +71,41 @@ const renderAddStudent = () => {
 };
 
 const fillValidStudentForm = () => {
-  fireEvent.change(
-    screen.getByLabelText("Student ID"),
-    {
-      target: { value: "STU999" },
-    }
-  );
+  fireEvent.change(screen.getByLabelText("Student ID"), {
+    target: { value: "STU999" },
+  });
 
-  fireEvent.change(
-    screen.getByLabelText("Name"),
-    {
-      target: { value: "Test Student" },
-    }
-  );
+  fireEvent.change(screen.getByLabelText("Name"), {
+    target: { value: "Test Student" },
+  });
 
-  fireEvent.change(
-    screen.getByLabelText("Email"),
-    {
-      target: {
-        value: "test@example.com",
-      },
-    }
-  );
+  fireEvent.change(screen.getByLabelText("Email"), {
+    target: { value: "test@example.com" },
+  });
 
-  fireEvent.change(
-    screen.getByLabelText("Phone"),
-    {
-      target: { value: "9876543210" },
-    }
-  );
+  fireEvent.change(screen.getByLabelText("Phone"), {
+    target: { value: "9876543210" },
+  });
 
-  fireEvent.change(
-    screen.getByLabelText("Branch"),
-    {
-      target: {
-        value: "Computer Science",
-      },
-    }
-  );
+  fireEvent.change(screen.getByLabelText("Branch"), {
+    target: { value: "Computer Science" },
+  });
 
-  fireEvent.change(
-    screen.getByLabelText("Year"),
-    {
-      target: { value: "1st Year" },
-    }
-  );
+  fireEvent.change(screen.getByLabelText("Year"), {
+    target: { value: "1st Year" },
+  });
 
-  fireEvent.change(
-    screen.getByLabelText("Gender"),
-    {
-      target: { value: "Male" },
-    }
-  );
+  fireEvent.change(screen.getByLabelText("Gender"), {
+    target: { value: "Male" },
+  });
 
-  fireEvent.change(
-    screen.getByLabelText("Date of Birth"),
-    {
-      target: { value: "2005-01-01" },
-    }
-  );
+  fireEvent.change(screen.getByLabelText("Date of Birth"), {
+    target: { value: "2005-01-01" },
+  });
 
-  fireEvent.change(
-    screen.getByLabelText("Address"),
-    {
-      target: { value: "Test Address" },
-    }
-  );
+  fireEvent.change(screen.getByLabelText("Address"), {
+    target: { value: "Test Address" },
+  });
 };
 
 describe("Add Student page", () => {
@@ -136,41 +128,15 @@ describe("Add Student page", () => {
       })
     ).toBeInTheDocument();
 
-    expect(
-      screen.getByLabelText("Student ID")
-    ).toBeInTheDocument();
-
-    expect(
-      screen.getByLabelText("Name")
-    ).toBeInTheDocument();
-
-    expect(
-      screen.getByLabelText("Email")
-    ).toBeInTheDocument();
-
-    expect(
-      screen.getByLabelText("Phone")
-    ).toBeInTheDocument();
-
-    expect(
-      screen.getByLabelText("Branch")
-    ).toBeInTheDocument();
-
-    expect(
-      screen.getByLabelText("Year")
-    ).toBeInTheDocument();
-
-    expect(
-      screen.getByLabelText("Gender")
-    ).toBeInTheDocument();
-
-    expect(
-      screen.getByLabelText("Date of Birth")
-    ).toBeInTheDocument();
-
-    expect(
-      screen.getByLabelText("Address")
-    ).toBeInTheDocument();
+    expect(screen.getByLabelText("Student ID")).toBeInTheDocument();
+    expect(screen.getByLabelText("Name")).toBeInTheDocument();
+    expect(screen.getByLabelText("Email")).toBeInTheDocument();
+    expect(screen.getByLabelText("Phone")).toBeInTheDocument();
+    expect(screen.getByLabelText("Branch")).toBeInTheDocument();
+    expect(screen.getByLabelText("Year")).toBeInTheDocument();
+    expect(screen.getByLabelText("Gender")).toBeInTheDocument();
+    expect(screen.getByLabelText("Date of Birth")).toBeInTheDocument();
+    expect(screen.getByLabelText("Address")).toBeInTheDocument();
 
     expect(
       screen.getByRole("button", {
@@ -196,9 +162,7 @@ describe("Add Student page", () => {
 
     fireEvent.submit(form);
 
-    expect(
-      screen.getByRole("alert")
-    ).toHaveTextContent(
+    expect(screen.getByRole("alert")).toHaveTextContent(
       "Please fill in all required fields."
     );
   });
@@ -206,70 +170,41 @@ describe("Add Student page", () => {
   it("rejects an invalid email address", () => {
     renderAddStudent();
 
-    fireEvent.change(
-      screen.getByLabelText("Student ID"),
-      {
-        target: { value: "STU999" },
-      }
-    );
+    fireEvent.change(screen.getByLabelText("Student ID"), {
+      target: { value: "STU999" },
+    });
 
-    fireEvent.change(
-      screen.getByLabelText("Name"),
-      {
-        target: { value: "Test Student" },
-      }
-    );
+    fireEvent.change(screen.getByLabelText("Name"), {
+      target: { value: "Test Student" },
+    });
 
-    fireEvent.change(
-      screen.getByLabelText("Email"),
-      {
-        target: { value: "invalid-email" },
-      }
-    );
+    fireEvent.change(screen.getByLabelText("Email"), {
+      target: { value: "invalid-email" },
+    });
 
-    fireEvent.change(
-      screen.getByLabelText("Phone"),
-      {
-        target: { value: "9876543210" },
-      }
-    );
+    fireEvent.change(screen.getByLabelText("Phone"), {
+      target: { value: "9876543210" },
+    });
 
-    fireEvent.change(
-      screen.getByLabelText("Branch"),
-      {
-        target: {
-          value: "Computer Science",
-        },
-      }
-    );
+    fireEvent.change(screen.getByLabelText("Branch"), {
+      target: { value: "Computer Science" },
+    });
 
-    fireEvent.change(
-      screen.getByLabelText("Year"),
-      {
-        target: { value: "1st Year" },
-      }
-    );
+    fireEvent.change(screen.getByLabelText("Year"), {
+      target: { value: "1st Year" },
+    });
 
-    fireEvent.change(
-      screen.getByLabelText("Gender"),
-      {
-        target: { value: "Male" },
-      }
-    );
+    fireEvent.change(screen.getByLabelText("Gender"), {
+      target: { value: "Male" },
+    });
 
-    fireEvent.change(
-      screen.getByLabelText("Date of Birth"),
-      {
-        target: { value: "2005-01-01" },
-      }
-    );
+    fireEvent.change(screen.getByLabelText("Date of Birth"), {
+      target: { value: "2005-01-01" },
+    });
 
-    fireEvent.change(
-      screen.getByLabelText("Address"),
-      {
-        target: { value: "Test Address" },
-      }
-    );
+    fireEvent.change(screen.getByLabelText("Address"), {
+      target: { value: "Test Address" },
+    });
 
     const form = screen
       .getByRole("button", {
@@ -279,9 +214,7 @@ describe("Add Student page", () => {
 
     fireEvent.submit(form);
 
-    expect(
-      screen.getByRole("alert")
-    ).toHaveTextContent(
+    expect(screen.getByRole("alert")).toHaveTextContent(
       "Please enter a valid email address."
     );
   });
@@ -289,12 +222,9 @@ describe("Add Student page", () => {
   it("rejects whitespace-only required text fields", () => {
     renderAddStudent();
 
-    fireEvent.change(
-      screen.getByLabelText("Student ID"),
-      {
-        target: { value: "   " },
-      }
-    );
+    fireEvent.change(screen.getByLabelText("Student ID"), {
+      target: { value: "   " },
+    });
 
     const form = screen
       .getByRole("button", {
@@ -304,19 +234,12 @@ describe("Add Student page", () => {
 
     fireEvent.submit(form);
 
-    expect(
-      screen.getByRole("alert")
-    ).toHaveTextContent(
+    expect(screen.getByRole("alert")).toHaveTextContent(
       "Please fill in all required fields."
     );
   });
 
-  it("assigns ID 1 when adding a student to an empty list", () => {
-    localStorage.setItem(
-      "students",
-      JSON.stringify([])
-    );
-
+  it("submits a valid student to the API", async () => {
     renderAddStudent();
 
     fillValidStudentForm();
@@ -329,82 +252,23 @@ describe("Add Student page", () => {
 
     fireEvent.submit(form);
 
-    const savedStudents = JSON.parse(
-      localStorage.getItem("students")
+    await waitFor(() => {
+      expect(fetch).toHaveBeenCalledWith(
+        "http://localhost:5000/api/students",
+        expect.objectContaining({
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+        })
+      );
+    });
+
+    const postCall = fetch.mock.calls.find(
+      ([, options]) => options?.method === "POST"
     );
 
-    expect(savedStudents).toHaveLength(1);
-    expect(savedStudents[0].id).toBe(1);
-    expect(savedStudents[0].name).toBe(
-      "Test Student"
-    );
-  });
-
-  it("assigns the next ID after the highest existing ID", () => {
-    const existingStudents = [
-      {
-        id: 2,
-        studentId: "STU002",
-        name: "Student Two",
-        email: "two@example.com",
-        phone: "9876543210",
-        branch: "Computer Science",
-        year: "2nd Year",
-        gender: "Male",
-        dateOfBirth: "2004-01-01",
-        address: "Address Two",
-      },
-      {
-        id: 7,
-        studentId: "STU007",
-        name: "Student Seven",
-        email: "seven@example.com",
-        phone: "9876543211",
-        branch: "Electronics",
-        year: "3rd Year",
-        gender: "Female",
-        dateOfBirth: "2003-01-01",
-        address: "Address Seven",
-      },
-      {
-        id: 4,
-        studentId: "STU004",
-        name: "Student Four",
-        email: "four@example.com",
-        phone: "9876543212",
-        branch: "Mechanical",
-        year: "1st Year",
-        gender: "Other",
-        dateOfBirth: "2005-01-01",
-        address: "Address Four",
-      },
-    ];
-
-    localStorage.setItem(
-      "students",
-      JSON.stringify(existingStudents)
-    );
-
-    renderAddStudent();
-
-    fillValidStudentForm();
-
-    const form = screen
-      .getByRole("button", {
-        name: "Add Student",
-      })
-      .closest("form");
-
-    fireEvent.submit(form);
-
-    const savedStudents = JSON.parse(
-      localStorage.getItem("students")
-    );
-
-    expect(savedStudents).toHaveLength(4);
-    expect(savedStudents[3].id).toBe(8);
-    expect(savedStudents[3].name).toBe(
-      "Test Student"
-    );
+    expect(postCall).toBeDefined();
+    expect(JSON.parse(postCall[1].body)).toEqual({ studentId: "STU999", name: "Test Student", email: "test@example.com", phone: "9876543210", branch: "Computer Science", year: "1st Year", gender: "Male", dateOfBirth: "2005-01-01", address: "Test Address", });
   });
 });

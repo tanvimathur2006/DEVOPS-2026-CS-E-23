@@ -1,3 +1,4 @@
+
 import {
   beforeEach,
   describe,
@@ -5,13 +6,16 @@ import {
   it,
   vi,
 } from "vitest";
+
 import {
   fireEvent,
   render,
   screen,
   waitFor,
 } from "@testing-library/react";
+
 import userEvent from "@testing-library/user-event";
+
 import {
   MemoryRouter,
   Route,
@@ -23,31 +27,167 @@ import Students from "../pages/Students";
 import AddStudent from "../pages/AddStudent";
 import EditStudent from "../pages/EditStudent";
 import StudentDetails from "../pages/StudentDetails";
+
 import { StudentProvider } from "../context/StudentContext.jsx";
+
 import students from "../data/studentData";
 
+let apiStudents;
+
+const createApiStudents = () =>
+  students.map((student) => ({
+    ...student,
+    _id: String(student.id),
+  }));
+
 beforeEach(() => {
-  const storage = {};
+  vi.restoreAllMocks();
 
-  vi.stubGlobal("localStorage", {
-    getItem: vi.fn((key) => storage[key] ?? null),
+  apiStudents = createApiStudents();
 
-    setItem: vi.fn((key, value) => {
-      storage[key] = String(value);
-    }),
+  vi.stubGlobal(
+    "confirm",
+    vi.fn(() => true)
+  );
 
-    removeItem: vi.fn((key) => {
-      delete storage[key];
-    }),
+  vi.stubGlobal(
+    "fetch",
+    vi.fn(async (url, options = {}) => {
+      const method = options.method || "GET";
 
-    clear: vi.fn(() => {
-      Object.keys(storage).forEach(
-        (key) => delete storage[key]
-      );
-    }),
-  });
+      if (method === "GET") {
+        const id = url.split("/").pop();
 
-  vi.stubGlobal("confirm", vi.fn(() => true));
+        if (
+          url.includes("/api/students/") &&
+          id
+        ) {
+          const student = apiStudents.find(
+            (item) => String(item._id) === String(id)
+          );
+
+          if (!student) {
+            return {
+              ok: false,
+              json: async () => ({
+                success: false,
+                message: "Student not found",
+              }),
+            };
+          }
+
+          return {
+            ok: true,
+            json: async () => ({
+              success: true,
+              data: student,
+            }),
+          };
+        }
+
+        return {
+          ok: true,
+          json: async () => ({
+            success: true,
+            count: apiStudents.length,
+            data: apiStudents,
+          }),
+        };
+      }
+
+      if (method === "POST") {
+        const body = JSON.parse(options.body);
+
+        const newStudent = {
+          ...body,
+          _id: "integration-student-id",
+        };
+
+        apiStudents.push(newStudent);
+
+        return {
+          ok: true,
+          json: async () => ({
+            success: true,
+            data: newStudent,
+          }),
+        };
+      }
+
+      if (method === "PUT") {
+        const id = url.split("/").pop();
+        const body = JSON.parse(options.body);
+
+        const index = apiStudents.findIndex(
+          (student) =>
+            String(student._id) === String(id)
+        );
+
+        if (index === -1) {
+          return {
+            ok: false,
+            json: async () => ({
+              success: false,
+              message: "Student not found",
+            }),
+          };
+        }
+
+        const updatedStudent = {
+          ...apiStudents[index],
+          ...body,
+          _id: apiStudents[index]._id,
+        };
+
+        apiStudents[index] = updatedStudent;
+
+        return {
+          ok: true,
+          json: async () => ({
+            success: true,
+            data: updatedStudent,
+          }),
+        };
+      }
+
+      if (method === "DELETE") {
+        const id = url.split("/").pop();
+
+        const index = apiStudents.findIndex(
+          (student) =>
+            String(student._id) === String(id)
+        );
+
+        if (index === -1) {
+          return {
+            ok: false,
+            json: async () => ({
+              success: false,
+              message: "Student not found",
+            }),
+          };
+        }
+
+        apiStudents.splice(index, 1);
+
+        return {
+          ok: true,
+          json: async () => ({
+            success: true,
+            message: "Student deleted successfully",
+          }),
+        };
+      }
+
+      return {
+        ok: false,
+        json: async () => ({
+          success: false,
+          message: "Unsupported request",
+        }),
+      };
+    })
+  );
 });
 
 const renderApp = (initialRoute) => {
@@ -174,6 +314,10 @@ describe("Student CRUD integration", () => {
 
     renderApp("/students/add");
 
+    await screen.findByRole("heading", {
+      name: "Add Student",
+    });
+
     fillAddStudentForm();
 
     await user.click(
@@ -183,13 +327,15 @@ describe("Student CRUD integration", () => {
     );
 
     expect(
-      screen.getByRole("heading", {
+      await screen.findByRole("heading", {
         name: "Students",
       })
     ).toBeInTheDocument();
 
     expect(
-      screen.getByText("Integration Student")
+      await screen.findByText(
+        "Integration Student"
+      )
     ).toBeInTheDocument();
 
     expect(
@@ -208,9 +354,10 @@ describe("Student CRUD integration", () => {
       `/students/${student.id}/edit`
     );
 
-    const nameInput = screen.getByLabelText(
-      "Name"
-    );
+    const nameInput =
+      await screen.findByDisplayValue(
+        student.name
+      );
 
     await user.clear(nameInput);
 
@@ -225,16 +372,14 @@ describe("Student CRUD integration", () => {
       })
     );
 
-    await waitFor(() => {
-      expect(
-        screen.getByRole("heading", {
-          name: "Student Details",
-        })
-      ).toBeInTheDocument();
-    });
+    expect(
+      await screen.findByRole("heading", {
+        name: "Student Details",
+      })
+    ).toBeInTheDocument();
 
     expect(
-      screen.getByRole("heading", {
+      await screen.findByRole("heading", {
         name: "Updated Integration Student",
       })
     ).toBeInTheDocument();
@@ -248,7 +393,7 @@ describe("Student CRUD integration", () => {
     renderApp("/students");
 
     expect(
-      screen.getByText(
+      await screen.findByText(
         studentToDelete.name
       )
     ).toBeInTheDocument();
@@ -274,17 +419,14 @@ describe("Student CRUD integration", () => {
       ).not.toBeInTheDocument();
     });
   });
-
   it("keeps the dashboard student count consistent after deletion", async () => {
     const user = userEvent.setup();
 
-    const initialCount = students.length;
+    const initialCount = apiStudents.length;
 
     render(
       <StudentProvider>
-        <MemoryRouter
-          initialEntries={["/students"]}
-        >
+        <MemoryRouter initialEntries={["/students"]}>
           <Routes>
             <Route
               path="/students"
@@ -300,26 +442,22 @@ describe("Student CRUD integration", () => {
       </StudentProvider>
     );
 
-    const deleteButtons =
-      screen.getAllByRole("button", {
-        name: "Delete",
-      });
+    const deleteButtons = await screen.findAllByRole("button", {
+      name: "Delete",
+    });
+
+    expect(deleteButtons).toHaveLength(initialCount);
 
     await user.click(deleteButtons[0]);
 
     await waitFor(() => {
-      const totalStudentsCard =
-        screen
-          .getByText("Total Students")
-          .closest(".stat-card");
+      const totalStudentsCard = screen
+        .getByText("Total Students")
+        .closest(".stat-card");
 
-      expect(
-        totalStudentsCard
-      ).toBeInTheDocument();
+      expect(totalStudentsCard).toBeInTheDocument();
 
-      expect(
-        totalStudentsCard.querySelector("h2")
-      ).toHaveTextContent(
+      expect(totalStudentsCard.querySelector("h2")).toHaveTextContent(
         String(initialCount - 1)
       );
     });

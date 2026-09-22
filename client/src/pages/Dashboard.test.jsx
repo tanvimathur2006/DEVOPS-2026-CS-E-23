@@ -1,3 +1,4 @@
+
 import {
   beforeEach,
   describe,
@@ -17,25 +18,25 @@ import students from "../data/studentData";
 import { StudentProvider } from "../context/StudentContext.jsx";
 
 beforeEach(() => {
-  const storage = {};
+  vi.restoreAllMocks();
 
-  vi.stubGlobal("localStorage", {
-    getItem: vi.fn((key) => storage[key] ?? null),
-
-    setItem: vi.fn((key, value) => {
-      storage[key] = String(value);
-    }),
-
-    removeItem: vi.fn((key) => {
-      delete storage[key];
-    }),
-
-    clear: vi.fn(() => {
-      Object.keys(storage).forEach(
-        (key) => delete storage[key]
-      );
-    }),
-  });
+  vi.stubGlobal(
+    "fetch",
+    vi.fn(() =>
+      Promise.resolve({
+        ok: true,
+        json: () =>
+          Promise.resolve({
+            success: true,
+            count: students.length,
+            data: students.map((student) => ({
+              ...student,
+              _id: String(student.id),
+            })),
+          }),
+      })
+    )
+  );
 });
 
 const renderDashboard = () => {
@@ -47,7 +48,7 @@ const renderDashboard = () => {
 };
 
 describe("Dashboard page", () => {
-  it("renders the dashboard heading and overview", () => {
+  it("renders the dashboard heading and overview", async () => {
     renderDashboard();
 
     expect(
@@ -61,14 +62,22 @@ describe("Dashboard page", () => {
         "Overview of student records."
       )
     ).toBeInTheDocument();
+
+    await screen.findByText(
+      String(students.length)
+    );
   });
 
-  it("displays the total number of students", () => {
+  it("displays the total number of students", async () => {
     renderDashboard();
 
-    const totalStudentsCard = screen
-      .getByText("Total Students")
-      .closest(".stat-card");
+    const totalStudentsText =
+      await screen.findByText(
+        String(students.length)
+      );
+
+    const totalStudentsCard =
+      totalStudentsText.closest(".stat-card");
 
     expect(totalStudentsCard).toBeInTheDocument();
 
@@ -83,14 +92,16 @@ describe("Dashboard page", () => {
     ).toBeInTheDocument();
   });
 
-  it("displays the branch statistics", () => {
+  it("displays the branch statistics", async () => {
     renderDashboard();
 
-    const branchSection = screen
-      .getByRole("heading", {
+    const branchHeading =
+      await screen.findByRole("heading", {
         name: "Students by Branch",
-      })
-      .closest(".dashboard-card");
+      });
+
+    const branchSection =
+      branchHeading.closest(".dashboard-card");
 
     expect(branchSection).toBeInTheDocument();
 
@@ -104,36 +115,36 @@ describe("Dashboard page", () => {
       {}
     );
 
-    Object.entries(branchCounts).forEach(
-      ([branch, count]) => {
-        const branchItem = within(branchSection)
-          .getByText(branch)
-          .closest(".bar-item");
+    for (const [branch, count] of Object.entries(
+      branchCounts
+    )) {
+      const branchItem = within(branchSection)
+        .getByText(branch)
+        .closest(".bar-item");
 
-        expect(
-          branchItem
-        ).toBeInTheDocument();
+      expect(branchItem).toBeInTheDocument();
 
-        expect(
-          within(branchItem).getByText(
-            String(count),
-            {
-              selector: "strong",
-            }
-          )
-        ).toBeInTheDocument();
-      }
-    );
+      expect(
+        within(branchItem).getByText(
+          String(count),
+          {
+            selector: "strong",
+          }
+        )
+      ).toBeInTheDocument();
+    }
   });
 
-  it("displays the year statistics", () => {
+  it("displays the year statistics", async () => {
     renderDashboard();
 
-    const yearSection = screen
-      .getByRole("heading", {
+    const yearHeading =
+      await screen.findByRole("heading", {
         name: "Students by Year",
-      })
-      .closest(".dashboard-card");
+      });
+
+    const yearSection =
+      yearHeading.closest(".dashboard-card");
 
     expect(yearSection).toBeInTheDocument();
 
@@ -147,40 +158,38 @@ describe("Dashboard page", () => {
       {}
     );
 
-    Object.entries(yearCounts).forEach(
-      ([year, count]) => {
-        const yearItem = within(yearSection)
-          .getByText(year)
-          .closest(".year-item");
+    for (const [year, count] of Object.entries(
+      yearCounts
+    )) {
+      const yearItem = within(yearSection)
+        .getByText(year)
+        .closest(".year-item");
 
-        expect(
-          yearItem
-        ).toBeInTheDocument();
+      expect(yearItem).toBeInTheDocument();
 
-        expect(
-          within(yearItem).getByText(
-            String(count),
-            {
-              selector: "strong",
-            }
-          )
-        ).toBeInTheDocument();
-      }
-    );
+      expect(
+        within(yearItem).getByText(
+          String(count),
+          {
+            selector: "strong",
+          }
+        )
+      ).toBeInTheDocument();
+    }
   });
 
-  it("displays the recent students section", () => {
+  it("displays the recent students section", async () => {
     renderDashboard();
 
     expect(
-      screen.getByRole("heading", {
+      await screen.findByRole("heading", {
         name: "Recent Students",
       })
     ).toBeInTheDocument();
 
-    students.slice(0, 5).forEach((student) => {
+    for (const student of students.slice(0, 5)) {
       expect(
-        screen.getByText(student.name)
+        await screen.findByText(student.name)
       ).toBeInTheDocument();
 
       expect(
@@ -188,17 +197,19 @@ describe("Dashboard page", () => {
           new RegExp(student.studentId)
         )
       ).toBeInTheDocument();
-    });
+    }
   });
 
-  it("calculates the correct branch bar width", () => {
+  it("calculates the correct branch bar width", async () => {
     renderDashboard();
 
-    const branchSection = screen
-      .getByRole("heading", {
+    const branchHeading =
+      await screen.findByRole("heading", {
         name: "Students by Branch",
-      })
-      .closest(".dashboard-card");
+      });
+
+    const branchSection =
+      branchHeading.closest(".dashboard-card");
 
     const branchCounts = students.reduce(
       (counts, student) => {
@@ -210,22 +221,22 @@ describe("Dashboard page", () => {
       {}
     );
 
-    Object.entries(branchCounts).forEach(
-      ([branch, count]) => {
-        const branchItem = within(branchSection)
-          .getByText(branch)
-          .closest(".bar-item");
+    for (const [branch, count] of Object.entries(
+      branchCounts
+    )) {
+      const branchItem = within(branchSection)
+        .getByText(branch)
+        .closest(".bar-item");
 
-        const barFill =
-          branchItem.querySelector(".bar-fill");
+      const barFill =
+        branchItem.querySelector(".bar-fill");
 
-        const expectedWidth =
-          `${(count / students.length) * 100}%`;
+      const expectedWidth =
+        `${(count / students.length) * 100}%`;
 
-        expect(barFill).toHaveStyle({
-          width: expectedWidth,
-        });
-      }
-    );
+      expect(barFill).toHaveStyle({
+        width: expectedWidth,
+      });
+    }
   });
 });

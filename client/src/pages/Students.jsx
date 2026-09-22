@@ -2,17 +2,56 @@ import { Link } from "react-router-dom";
 import { useStudents } from "../context/useStudents";
 
 function Students() {
-  const { students, deleteStudent } = useStudents();
+  const {
+    students,
+    loading,
+    error,
+    deleteStudent,
+  } = useStudents();
 
-  const handleDelete = (id) => {
+  const handleDelete = async (id) => {
     const confirmed = window.confirm(
       "Are you sure you want to delete this student?"
     );
 
-    if (confirmed) {
-      deleteStudent(id);
+    if (!confirmed) {
+      return;
+    }
+
+    try {
+      await deleteStudent(id);
+    } catch (err) {
+      // The context stores the API error.
     }
   };
+
+  if (loading) {
+    return (
+      <section aria-labelledby="students-heading">
+        <h1 id="students-heading">Students</h1>
+        <p role="status">Loading students...</p>
+      </section>
+    );
+  }
+
+  if (error) {
+    return (
+      <section aria-labelledby="students-heading">
+        <h1 id="students-heading">Students</h1>
+
+        <div role="alert">
+          <p>Unable to load students.</p>
+          <p>{error}</p>
+          <button
+            type="button"
+            onClick={() => window.location.reload()}
+          >
+            Try Again
+          </button>
+        </div>
+      </section>
+    );
+  }
 
   if (students.length === 0) {
     return (
@@ -30,7 +69,14 @@ function Students() {
 
   return (
     <section aria-labelledby="students-heading">
-      <h1 id="students-heading">Students</h1>
+      <div className="page-header">
+        <div>
+          <h1 id="students-heading">Students</h1>
+          <p>Manage student records.</p>
+        </div>
+
+        <Link to="/students/add">Add Student</Link>
+      </div>
 
       <div
         className="table-responsive"

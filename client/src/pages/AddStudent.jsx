@@ -4,7 +4,7 @@ import { useStudents } from "../context/useStudents";
 
 function AddStudent() {
   const navigate = useNavigate();
-  const { students, addStudent } = useStudents();
+  const { addStudent } = useStudents();
 
   const [formData, setFormData] = useState({
     studentId: "",
@@ -64,7 +64,7 @@ function AddStudent() {
     return "";
   };
 
-  const handleSubmit = (event) => {
+  const handleSubmit = async (event) => {
     event.preventDefault();
 
     const validationError = validateForm();
@@ -74,11 +74,7 @@ function AddStudent() {
       return;
     }
 
-    const newStudent = {
-      id:
-        students.length > 0
-          ? Math.max(...students.map((student) => student.id)) + 1
-          : 1,
+    const studentData = {
       ...formData,
       studentId: formData.studentId.trim(),
       name: formData.name.trim(),
@@ -87,9 +83,12 @@ function AddStudent() {
       address: formData.address.trim(),
     };
 
-    addStudent(newStudent);
-
-    navigate("/students");
+    try {
+      await addStudent(studentData);
+      navigate("/students");
+    } catch (error) {
+      setError(error.message || "Failed to add student.");
+    }
   };
 
   return (

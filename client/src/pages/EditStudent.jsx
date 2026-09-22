@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { useStudents } from "../context/useStudents";
 
@@ -6,41 +6,50 @@ function EditStudent() {
   const { id } = useParams();
   const navigate = useNavigate();
 
-  const { students, updateStudent } = useStudents();
+  const { students, updateStudent, loading } = useStudents();
 
   const student = students.find(
-    (student) => student.id === Number(id)
+    (student) => String(student.id) === String(id)
   );
 
-  const [formData, setFormData] = useState(() => {
-    if (!student) {
-      return {
-        studentId: "",
-        name: "",
-        email: "",
-        phone: "",
-        branch: "",
-        year: "",
-        gender: "",
-        dateOfBirth: "",
-        address: "",
-      };
-    }
-
-    return {
-      studentId: student.studentId,
-      name: student.name,
-      email: student.email,
-      phone: student.phone,
-      branch: student.branch,
-      year: student.year,
-      gender: student.gender,
-      dateOfBirth: student.dateOfBirth,
-      address: student.address,
-    };
+  const [formData, setFormData] = useState({
+    studentId: "",
+    name: "",
+    email: "",
+    phone: "",
+    branch: "",
+    year: "",
+    gender: "",
+    dateOfBirth: "",
+    address: "",
   });
 
   const [error, setError] = useState("");
+
+  useEffect(() => {
+    if (student) {
+      setFormData({
+        studentId: student.studentId,
+        name: student.name,
+        email: student.email,
+        phone: student.phone,
+        branch: student.branch,
+        year: student.year,
+        gender: student.gender,
+        dateOfBirth: student.dateOfBirth,
+        address: student.address,
+      });
+    }
+  }, [student]);
+
+  if (loading) {
+    return (
+      <section>
+        <h1>Edit Student</h1>
+        <p>Loading student information...</p>
+      </section>
+    );
+  }
 
   if (!student) {
     return (
@@ -99,7 +108,7 @@ function EditStudent() {
     return "";
   };
 
-  const handleSubmit = (event) => {
+  const handleSubmit = async (event) => {
     event.preventDefault();
 
     const validationError = validateForm();
@@ -109,17 +118,21 @@ function EditStudent() {
       return;
     }
 
-    updateStudent({
-      id: student.id,
-      ...formData,
-      studentId: formData.studentId.trim(),
-      name: formData.name.trim(),
-      email: formData.email.trim(),
-      phone: formData.phone.trim(),
-      address: formData.address.trim(),
-    });
+    try {
+      await updateStudent({
+        id: student.id,
+        ...formData,
+        studentId: formData.studentId.trim(),
+        name: formData.name.trim(),
+        email: formData.email.trim(),
+        phone: formData.phone.trim(),
+        address: formData.address.trim(),
+      });
 
-    navigate(`/students/${student.id}`);
+      navigate(`/students/${student.id}`);
+    } catch (error) {
+      setError(error.message || "Failed to update student.");
+    }
   };
 
   return (
@@ -201,9 +214,7 @@ function EditStudent() {
               required
             >
               <option value="">Select Branch</option>
-              <option value="Computer Science">
-                Computer Science
-              </option>
+              <option value="Computer Science">Computer Science</option>
               <option value="Electronics">Electronics</option>
               <option value="Mechanical">Mechanical</option>
               <option value="Civil">Civil</option>
@@ -271,9 +282,7 @@ function EditStudent() {
 
             <button
               type="button"
-              onClick={() =>
-                navigate(`/students/${student.id}`)
-              }
+              onClick={() => navigate(`/students/${student.id}`)}
             >
               Cancel
             </button>
