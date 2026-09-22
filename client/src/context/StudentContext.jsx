@@ -136,8 +136,11 @@ export function StudentProvider({ children }) {
   };
 
   const getStudentById = (id) => {
-    return students.find((student) => String(student.id) === String(id));
+    return students.find(
+      (student) => String(student.id) === String(id)
+    );
   };
+
   return (
     <StudentContext.Provider
       value={{

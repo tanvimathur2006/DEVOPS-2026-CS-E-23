@@ -1,5 +1,17 @@
-import { describe, expect, it, beforeEach, vi } from "vitest";
-import { render, screen } from "@testing-library/react";
+
+import {
+  beforeEach,
+  describe,
+  expect,
+  it,
+  vi,
+} from "vitest";
+import {
+  fireEvent,
+  render,
+  screen,
+  waitFor,
+} from "@testing-library/react";
 import { MemoryRouter } from "react-router-dom";
 
 import Students from "./Students";
@@ -47,8 +59,19 @@ beforeEach(() => {
 
   vi.stubGlobal(
     "fetch",
-    vi.fn(() =>
-      Promise.resolve({
+    vi.fn((url, options = {}) => {
+      if (options.method === "DELETE") {
+        return Promise.resolve({
+          ok: true,
+          json: () =>
+            Promise.resolve({
+              success: true,
+              message: "Student deleted successfully",
+            }),
+        });
+      }
+
+      return Promise.resolve({
         ok: true,
         json: () =>
           Promise.resolve({
@@ -56,8 +79,13 @@ beforeEach(() => {
             count: mockStudents.length,
             data: mockStudents,
           }),
-      })
-    )
+      });
+    })
+  );
+
+  vi.stubGlobal(
+    "confirm",
+    vi.fn(() => true)
   );
 });
 
@@ -66,7 +94,9 @@ describe("Students page", () => {
     renderStudents();
 
     expect(
-      screen.getByRole("heading", { name: "Students" })
+      screen.getByRole("heading", {
+        name: "Students",
+      })
     ).toBeInTheDocument();
   });
 
@@ -74,27 +104,39 @@ describe("Students page", () => {
     renderStudents();
 
     expect(
-      await screen.findByRole("columnheader", { name: "Student ID" })
+      await screen.findByRole("columnheader", {
+        name: "Student ID",
+      })
     ).toBeInTheDocument();
 
     expect(
-      screen.getByRole("columnheader", { name: "Name" })
+      screen.getByRole("columnheader", {
+        name: "Name",
+      })
     ).toBeInTheDocument();
 
     expect(
-      screen.getByRole("columnheader", { name: "Email" })
+      screen.getByRole("columnheader", {
+        name: "Email",
+      })
     ).toBeInTheDocument();
 
     expect(
-      screen.getByRole("columnheader", { name: "Branch" })
+      screen.getByRole("columnheader", {
+        name: "Branch",
+      })
     ).toBeInTheDocument();
 
     expect(
-      screen.getByRole("columnheader", { name: "Year" })
+      screen.getByRole("columnheader", {
+        name: "Year",
+      })
     ).toBeInTheDocument();
 
     expect(
-      screen.getByRole("columnheader", { name: "Actions" })
+      screen.getByRole("columnheader", {
+        name: "Actions",
+      })
     ).toBeInTheDocument();
   });
 
@@ -102,8 +144,13 @@ describe("Students page", () => {
     renderStudents();
 
     for (const student of mockStudents) {
-      expect(await screen.findByText(student.name)).toBeInTheDocument();
-      expect(screen.getByText(student.email)).toBeInTheDocument();
+      expect(
+        await screen.findByText(student.name)
+      ).toBeInTheDocument();
+
+      expect(
+        screen.getByText(student.email)
+      ).toBeInTheDocument();
     }
   });
 
@@ -113,11 +160,15 @@ describe("Students page", () => {
     await screen.findByText("Aarav Sharma");
 
     expect(
-      screen.getAllByRole("link", { name: "View" }).length
+      screen.getAllByRole("link", {
+        name: "View",
+      }).length
     ).toBe(mockStudents.length);
 
     expect(
-      screen.getAllByRole("link", { name: "Edit" }).length
+      screen.getAllByRole("link", {
+        name: "Edit",
+      }).length
     ).toBe(mockStudents.length);
   });
 
@@ -127,7 +178,150 @@ describe("Students page", () => {
     await screen.findByText("Aarav Sharma");
 
     expect(
-      screen.getAllByRole("button", { name: "Delete" }).length
+      screen.getAllByRole("button", {
+        name: "Delete",
+      }).length
     ).toBe(mockStudents.length);
+  });
+
+  it("deletes a student after confirmation", async () => {
+    renderStudents();
+
+    const studentToDelete = await screen.findByText(
+      "Aarav Sharma"
+    );
+
+    fireEvent.click(
+      screen.getAllByRole("button", {
+        name: "Delete",
+      })[0]
+    );
+
+    expect(window.confirm).toHaveBeenCalledWith(
+      "Are you sure you want to delete this student?"
+    );
+
+    await waitFor(() => {
+      expect(studentToDelete).not.toBeInTheDocument();
+    });
+
+    await waitFor(() => {
+      expect(
+        screen.getAllByRole("button", {
+          name: "Delete",
+        }).length
+      ).toBe(mockStudents.length - 1);
+    });
+  });
+
+  it("does not delete a student when deletion is cancelled", async () => {
+    window.confirm.mockReturnValueOnce(false);
+
+    renderStudents();
+
+    const studentToKeep = await screen.findByText(
+      "Aarav Sharma"
+    );
+
+    fireEvent.click(
+      screen.getAllByRole("button", {
+        name: "Delete",
+      })[0]
+    );
+
+    expect(window.confirm).toHaveBeenCalledWith(
+      "Are you sure you want to delete this student?"
+    );
+
+    expect(studentToKeep).toBeInTheDocument();
+
+    expect(
+      screen.getAllByRole("button", {
+        name: "Delete",
+      }).length
+    ).toBe(mockStudents.length);
+  });
+});
+
+describe("Students empty state", () => {
+  it("shows an empty state when there are no students", async () => {
+    vi.stubGlobal(
+      "fetch",
+      vi.fn(() =>
+        Promise.resolve({
+          ok: true,
+          json: () =>
+            Promise.resolve({
+              success: true,
+              count: 0,
+              data: [],
+            }),
+        })
+      )
+    );
+
+    renderStudents();
+
+    expect(
+      await screen.findByText(
+        "No student records found."
+      )
+    ).toBeInTheDocument();
+
+    expect(
+      screen.queryByRole("columnheader", {
+        name: "Student ID",
+      })
+    ).not.toBeInTheDocument();
+  });
+
+  it("shows the empty state after deleting the only student", async () => {
+    vi.stubGlobal(
+      "fetch",
+      vi.fn((url, options = {}) => {
+        if (options.method === "DELETE") {
+          return Promise.resolve({
+            ok: true,
+            json: () =>
+              Promise.resolve({
+                success: true,
+                message: "Student deleted successfully",
+              }),
+          });
+        }
+
+        return Promise.resolve({
+          ok: true,
+          json: () =>
+            Promise.resolve({
+              success: true,
+              count: 1,
+              data: [mockStudents[0]],
+            }),
+        });
+      })
+    );
+
+    renderStudents();
+
+    expect(
+      await screen.findByText(mockStudents[0].name)
+    ).toBeInTheDocument();
+
+    fireEvent.click(
+      screen.getByRole("button", {
+        name: "Delete",
+      })
+    );
+
+    expect(
+      await screen.findByText(
+        "No student records found."
+      )
+    ).toBeInTheDocument();
+
+    expect(
+      screen.queryByText(mockStudents[0].name)
+    ).not.toBeInTheDocument();
   });
 });

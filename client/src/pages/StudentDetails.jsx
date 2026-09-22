@@ -5,7 +5,6 @@ function StudentDetails() {
   const { id } = useParams();
 
   const {
-    students,
     loading,
     error,
     getStudentById,

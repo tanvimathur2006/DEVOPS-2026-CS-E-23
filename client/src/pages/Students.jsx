@@ -42,7 +42,10 @@ function Students() {
         <div role="alert">
           <p>Unable to load students.</p>
           <p>{error}</p>
-          <button type="button" onClick={() => window.location.reload()}>
+          <button
+            type="button"
+            onClick={() => window.location.reload()}
+          >
             Try Again
           </button>
         </div>
@@ -56,7 +59,7 @@ function Students() {
         <h1 id="students-heading">Students</h1>
 
         <div role="status" aria-live="polite">
-          <p>No students found.</p>
+          <p>No student records found.</p>
           <p>There are no student records available yet.</p>
           <Link to="/students/add">Add a student</Link>
         </div>

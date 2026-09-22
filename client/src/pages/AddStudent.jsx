@@ -4,7 +4,7 @@ import { useStudents } from "../context/useStudents";
 
 function AddStudent() {
   const navigate = useNavigate();
-  const { students, addStudent } = useStudents();
+  const { addStudent } = useStudents();
 
   const [formData, setFormData] = useState({
     studentId: "",
@@ -18,6 +18,8 @@ function AddStudent() {
     address: "",
   });
 
+  const [error, setError] = useState("");
+
   const handleChange = (event) => {
     const { name, value } = event.target;
 
@@ -25,20 +27,69 @@ function AddStudent() {
       ...currentData,
       [name]: value,
     }));
+
+    setError("");
   };
 
- const handleSubmit = async (event) => {
-  event.preventDefault();
+  const validateForm = () => {
+    const textFields = [
+      "studentId",
+      "name",
+      "phone",
+      "address",
+    ];
 
-  try {
-      await addStudent(formData);
+    for (const field of textFields) {
+      if (!formData[field].trim()) {
+        return "Please fill in all required fields.";
+      }
+    }
+
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email)) {
+      return "Please enter a valid email address.";
+    }
+
+    if (!/^\d{10}$/.test(formData.phone.trim())) {
+      return "Please enter a valid 10-digit phone number.";
+    }
+
+    if (!formData.branch || !formData.year || !formData.gender) {
+      return "Please fill in all required fields.";
+    }
+
+    if (!formData.dateOfBirth) {
+      return "Please fill in all required fields.";
+    }
+
+    return "";
+  };
+
+  const handleSubmit = async (event) => {
+    event.preventDefault();
+
+    const validationError = validateForm();
+
+    if (validationError) {
+      setError(validationError);
+      return;
+    }
+
+    const studentData = {
+      ...formData,
+      studentId: formData.studentId.trim(),
+      name: formData.name.trim(),
+      email: formData.email.trim(),
+      phone: formData.phone.trim(),
+      address: formData.address.trim(),
+    };
+
+    try {
+      await addStudent(studentData);
       navigate("/students");
     } catch (error) {
-      // StudentContext stores the error.
+      setError(error.message || "Failed to add student.");
     }
   };
-
-
 
   return (
     <section>
@@ -53,6 +104,12 @@ function AddStudent() {
         <div className="card-header">
           <h2>Student Information</h2>
         </div>
+
+        {error && (
+          <p role="alert">
+            {error}
+          </p>
+        )}
 
         <form onSubmit={handleSubmit}>
           <div>

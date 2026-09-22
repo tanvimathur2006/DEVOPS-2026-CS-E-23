@@ -1,6 +1,15 @@
+
 import { describe, expect, it, beforeEach, vi } from "vitest";
-import { render, screen } from "@testing-library/react";
-import { MemoryRouter, Routes, Route } from "react-router-dom";
+import {
+  fireEvent,
+  render,
+  screen,
+} from "@testing-library/react";
+import {
+  MemoryRouter,
+  Route,
+  Routes,
+} from "react-router-dom";
 
 import EditStudent from "./EditStudent";
 import { StudentProvider } from "../context/StudentContext.jsx";
@@ -55,6 +64,23 @@ const renderEditStudent = () =>
     </StudentProvider>
   );
 
+const renderEditStudentWithInvalidId = () => {
+  return render(
+    <StudentProvider>
+      <MemoryRouter
+        initialEntries={["/students/999999/edit"]}
+      >
+        <Routes>
+          <Route
+            path="/students/:id/edit"
+            element={<EditStudent />}
+          />
+        </Routes>
+      </MemoryRouter>
+    </StudentProvider>
+  );
+};
+
 describe("Edit Student page", () => {
   it("renders the Edit Student heading", () => {
     renderEditStudent();
@@ -69,40 +95,166 @@ describe("Edit Student page", () => {
   it("renders the edit form with student information", async () => {
     renderEditStudent();
 
+    await screen.findByDisplayValue("STU001");
+
     expect(
-      await screen.findByDisplayValue("STU001")
+      screen.getByLabelText("Student ID")
+    ).toHaveValue("STU001");
+
+    expect(
+      screen.getByLabelText("Name")
+    ).toHaveValue("Aarav Sharma");
+
+    expect(
+      screen.getByLabelText("Email")
+    ).toHaveValue("aarav.sharma@example.com");
+
+    expect(
+      screen.getByLabelText("Phone")
+    ).toHaveValue("9876543210");
+
+    expect(
+      screen.getByLabelText("Branch")
+    ).toHaveValue("Computer Science");
+
+    expect(
+      screen.getByLabelText("Year")
+    ).toHaveValue("3rd Year");
+
+    expect(
+      screen.getByLabelText("Gender")
+    ).toHaveValue("Male");
+
+    expect(
+      screen.getByLabelText("Date of Birth")
+    ).toHaveValue("2004-05-12");
+
+    expect(
+      screen.getByLabelText("Address")
+    ).toHaveValue("Pune, Maharashtra");
+
+    expect(
+      screen.getByRole("button", {
+        name: "Save Changes",
+      })
     ).toBeInTheDocument();
 
     expect(
-      screen.getByDisplayValue("Aarav Sharma")
+      screen.getByRole("button", {
+        name: "Cancel",
+      })
     ).toBeInTheDocument();
+  });
+
+  it("shows an error when a required field is cleared", async () => {
+    renderEditStudent();
+
+    const nameInput = await screen.findByDisplayValue(
+      "Aarav Sharma"
+    );
+
+    fireEvent.change(nameInput, {
+      target: { value: "" },
+    });
+
+    const form = screen
+      .getByRole("button", {
+        name: "Save Changes",
+      })
+      .closest("form");
+
+    fireEvent.submit(form);
 
     expect(
-      screen.getByDisplayValue("aarav.sharma@example.com")
-    ).toBeInTheDocument();
+      screen.getByRole("alert")
+    ).toHaveTextContent(
+      "Please fill in all required fields."
+    );
+  });
+
+  it("rejects an invalid phone number", async () => {
+    renderEditStudent();
+
+    const phoneInput = await screen.findByDisplayValue(
+      "9876543210"
+    );
+
+    fireEvent.change(phoneInput, {
+      target: { value: "123" },
+    });
+
+    const form = screen
+      .getByRole("button", {
+        name: "Save Changes",
+      })
+      .closest("form");
+
+    fireEvent.submit(form);
 
     expect(
-      screen.getByDisplayValue("9876543210")
-    ).toBeInTheDocument();
+      screen.getByRole("alert")
+    ).toHaveTextContent(
+      "Please enter a valid 10-digit phone number."
+    );
+  });
+
+  it("rejects whitespace-only address", async () => {
+    renderEditStudent();
+
+    const addressInput = await screen.findByDisplayValue(
+      "Pune, Maharashtra"
+    );
+
+    fireEvent.change(addressInput, {
+      target: { value: "   " },
+    });
+
+    const form = screen
+      .getByRole("button", {
+        name: "Save Changes",
+      })
+      .closest("form");
+
+    fireEvent.submit(form);
 
     expect(
-      screen.getByDisplayValue("Computer Science")
-    ).toBeInTheDocument();
+      screen.getByRole("alert")
+    ).toHaveTextContent(
+      "Please fill in all required fields."
+    );
+  });
+
+  it("shows Student Not Found for an invalid student ID", async () => {
+    renderEditStudentWithInvalidId();
+
+    await screen.findByRole("heading", {
+      name: "Student Not Found",
+    });
 
     expect(
-      screen.getByDisplayValue("3rd Year")
+      screen.getByText(
+        "The student you are trying to edit does not exist."
+      )
     ).toBeInTheDocument();
+  });
+
+  it("does not show the edit form for an invalid student ID", async () => {
+    renderEditStudentWithInvalidId();
+
+    await screen.findByRole("heading", {
+      name: "Student Not Found",
+    });
 
     expect(
-      screen.getByDisplayValue("Male")
-    ).toBeInTheDocument();
+      screen.queryByRole("heading", {
+        name: "Student Information",
+      })
+    ).not.toBeInTheDocument();
 
     expect(
-      screen.getByDisplayValue("2004-05-12")
-    ).toBeInTheDocument();
-
-    expect(
-      screen.getByDisplayValue("Pune, Maharashtra")
-    ).toBeInTheDocument();
+      screen.queryByRole("button", {
+        name: "Save Changes",
+      })
+    ).not.toBeInTheDocument();
   });
 });
