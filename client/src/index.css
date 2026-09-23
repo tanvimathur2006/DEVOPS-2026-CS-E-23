@@ -657,3 +657,116 @@ textarea {
     grid-column: auto;
   }
 }
+/* ============================= */
+/* Students Page */
+/* ============================= */
+
+.data-table {
+  width: 100%;
+  min-width: 760px;
+  border-collapse: separate;
+  border-spacing: 0;
+  background-color: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 12px;
+  overflow: hidden;
+  box-shadow: 0 2px 6px rgba(15, 23, 42, 0.04);
+}
+
+.data-table th,
+.data-table td {
+  padding: 15px 16px;
+  text-align: left;
+  border-bottom: 1px solid #e5e7eb;
+  white-space: nowrap;
+}
+
+.data-table thead th {
+  background-color: #f8fafc;
+  color: #475569;
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.data-table tbody th,
+.data-table tbody td {
+  color: #334155;
+  font-size: 14px;
+}
+
+.data-table tbody tr:last-child th,
+.data-table tbody tr:last-child td {
+  border-bottom: none;
+}
+
+.data-table tbody tr:hover {
+  background-color: #f8fafc;
+}
+
+/* Student action links/buttons */
+
+.data-table td:last-child {
+  white-space: nowrap;
+}
+
+.data-table td:last-child a,
+.data-table td:last-child button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 7px 11px;
+  margin-right: 5px;
+  border-radius: 6px;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  text-decoration: none;
+}
+
+.data-table td:last-child a:first-child {
+  background-color: #eff6ff;
+  color: #2563eb;
+}
+
+.data-table td:last-child a:first-child:hover {
+  background-color: #dbeafe;
+}
+
+.data-table td:last-child a:nth-child(3) {
+  background-color: #f0fdf4;
+  color: #16a34a;
+}
+
+.data-table td:last-child a:nth-child(3):hover {
+  background-color: #dcfce7;
+}
+
+.data-table td:last-child button {
+  border: 1px solid #fecaca;
+  background-color: #fef2f2;
+  color: #dc2626;
+}
+
+.data-table td:last-child button:hover {
+  background-color: #fee2e2;
+}
+
+/* Responsive table container */
+
+.table-responsive {
+  width: 100%;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  border-radius: 12px;
+}
+
+@media (max-width: 768px) {
+  .data-table {
+    min-width: 700px;
+  }
+
+  .data-table th,
+  .data-table td {
+    padding: 12px 14px;
+  }
+}
