@@ -1,0 +1,21 @@
+services:
+
+  backend:
+    build:
+      context: ./backend
+    container_name: student-management-backend
+    ports:
+      - "5000:5000"
+    env_file:
+      - ./backend/.env
+    restart: unless-stopped
+
+  client:
+    build:
+      context: ./client
+    container_name: student-management-client
+    ports:
+      - "80:80"
+    depends_on:
+      - backend
+    restart: unless-stopped
