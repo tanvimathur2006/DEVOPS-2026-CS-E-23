@@ -1,5 +1,4 @@
-const API_URL = "http://localhost:5000/api/students";
-
+const API_URL = "/api/students";
 const handleResponse = async (response) => {
   const data = await response.json();
 

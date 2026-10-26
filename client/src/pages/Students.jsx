@@ -20,7 +20,7 @@ function Students() {
 
     try {
       await deleteStudent(id);
-    } catch (err) {
+    } catch {
       // The context stores the API error.
     }
   };
