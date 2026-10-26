@@ -1,0 +1,11 @@
+global:
+  scrape_interval: 15s
+  evaluation_interval: 15s
+
+scrape_configs:
+  - job_name: student-management-backend
+    metrics_path: /metrics
+    static_configs:
+      # The monitoring Compose project runs Prometheus separately from the
+      # backend, which is started on the host with `npm run dev`.
+      - targets: [host.docker.internal:5000]
