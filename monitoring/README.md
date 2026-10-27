@@ -84,7 +84,7 @@ HTTP series use `method`, normalized `route`, and final `status_code` labels. Ex
 
 ## Kubernetes integration
 
-Kubernetes manifests are under `k8s/`. Apply `namespace.yaml`, the application ConfigMap and Services, `prometheus-config.yaml`, then the Deployments and `prometheus-service.yaml` as documented in `k8s/README.md`. The Prometheus ConfigMap scrapes `backend.student-management.svc.cluster.local:5000/metrics`; the backend Service selects Pods in the `student-management` namespace. The Prometheus Service is internal; use `kubectl port-forward -n student-management service/prometheus 9090:9090` for local UI access. Do not put Atlas credentials or other application secrets in Prometheus configuration.
+Kubernetes manifests are under `k8s/`. Apply `namespace.yaml`, the application ConfigMap and Services, `prometheus-config.yaml`, then the Deployments and `prometheus-service.yaml` as documented in `k8s/README.md`. The Prometheus ConfigMap scrapes `backend.student-management.svc.cluster.local:5000/metrics`; the backend Service selects Pods in the `student-management` namespace. The Prometheus Service is internal; use `kubectl port-forward -n student-management service/prometheus 9091:9090` for local UI access. Local Docker Compose Prometheus already uses port 9090, so use 9091 to avoid a port conflict. Do not put Atlas credentials or other application secrets in Prometheus configuration.
 
 ## Troubleshooting
 

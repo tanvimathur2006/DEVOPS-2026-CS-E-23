@@ -112,10 +112,10 @@ kubectl rollout status deployment/backend -n student-management --timeout=180s
 Forward the Prometheus UI port in a terminal:
 
 ```powershell
-kubectl port-forward -n student-management service/prometheus 9090:9090
+kubectl port-forward -n student-management service/prometheus 9091:9090
 ```
 
-Open <http://localhost:9090>, select **Status → Targets**, and confirm `student-management-backend` is `UP`. To query request counts, enter `http_requests_total` in the expression field. Generate traffic with `Invoke-RestMethod http://localhost:8080/api/health` (with the frontend port-forward running) or `kubectl port-forward service/backend 5000:5000 -n student-management` and query `http://localhost:5000/api/health` directly.
+Open <http://localhost:9091>, select **Status → Targets**, and confirm `student-management-backend` is `UP`. Port 9091 avoids the local Docker Compose Prometheus UI, which uses port 9090. To query request counts, enter `http_requests_total` in the expression field. Generate traffic with `Invoke-RestMethod http://localhost:8080/api/health` (with the frontend port-forward running) or `kubectl port-forward service/backend 5001:5000 -n student-management` and query `http://localhost:5001/api/health` directly; local development already uses port 5000.
 
 For local Docker Compose monitoring, first start the backend on the host as described in `monitoring/README.md`, then from the repository root run `docker compose -f monitoring/compose.yaml up -d`. Open <http://localhost:9090>. This Compose file runs Prometheus and uses `host.docker.internal:5000` to reach the host backend; Kubernetes uses its Service DNS name.
 
