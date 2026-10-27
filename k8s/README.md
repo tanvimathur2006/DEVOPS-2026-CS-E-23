@@ -4,7 +4,7 @@
 
 - Docker Desktop with Kubernetes enabled and a Ready node
 - `kubectl` configured for the intended local cluster
-- Node.js/npm only if running the frontend tests locally
+- Node.js/npm only if running backend or frontend tests locally
 - `backend/.env` containing a valid `MONGODB_URI` for MongoDB Atlas; this ignored local file must not be committed
 
 The backend connects to Atlas at startup. Atlas must allow connections from the cluster's outbound network, and its database user must have the required student collection permissions.
@@ -14,8 +14,8 @@ The backend connects to Atlas at startup. Atlas must allow connections from the 
 From the repository root, build both images with the same explicit tag:
 
 ```powershell
-docker build -t student-management-backend:k8s-20261027 ./backend
-docker build -t student-management-frontend:k8s-20261027 ./client
+docker build -t student-management-backend:security-e64ac36 ./backend
+docker build -t student-management-frontend:security-e64ac36 ./client
 ```
 
 The local Docker Desktop Kubernetes cluster uses the Docker Desktop image store. The Deployments use `IfNotPresent`, so these locally built tags are not pulled from a remote registry.
@@ -69,7 +69,7 @@ kubectl logs -n student-management deployment/frontend
 Invoke-RestMethod http://localhost:8080/api/health
 ```
 
-A successful `/api/health` response confirms the browser-facing reverse proxy reaches the backend. The backend logs should report a successful MongoDB connection. Student CRUD can then be exercised in the UI; use a uniquely identifiable test student and delete it afterward. The backend test suite is available from `backend/` with `npm test`; it includes metrics and route-level tests that stub database operations.
+A successful `/api/health` response confirms the browser-facing reverse proxy reaches the backend. The backend logs should report a successful MongoDB connection. Student CRUD can then be exercised in the UI; use a uniquely identifiable test student and delete it afterward. Run backend checks with `npm test` from `backend/` and frontend tests with `npm test` from `client/`.
 
 Probe endpoints use the existing `/api/health` endpoint for the backend and `/` for Nginx. Startup probes allow connection setup time; readiness controls Service routing and liveness restarts an unresponsive process. To verify replacement behavior, delete a Pod by name and confirm its Deployment creates a new Ready Pod:
 
@@ -79,45 +79,118 @@ kubectl delete pod <pod-name> -n student-management
 kubectl get pods -n student-management -w
 ```
 
-## Prometheus Monitoring
+## Backend Metrics, Prometheus, and Grafana
 
-The backend exposes Prometheus metrics at `/metrics` on its existing port `5000`. The `http_requests_total` counter and `http_request_duration_seconds` histogram record method, matched route, and status code. The plain Prometheus Deployment scrapes the backend Service at `backend.student-management.svc.cluster.local:5000`; the Service selects Pods labelled `app: backend`. Prometheus uses an internal ClusterIP Service and is not exposed publicly.
+The backend exposes `GET /metrics` in Prometheus exposition format. Its request counter is `http_requests_total`; its latency histogram is `http_request_duration_seconds`. Both include bounded `method`, Express route-template `route`, and `status_code` labels. `/metrics` scrapes are excluded from those request metrics. The backend Service listens on port `5000`; Prometheus scrapes its fully qualified Service DNS name at `/metrics`.
 
-After building the backend image with the current manifest tag, create the database Secret as described above and deploy in this order:
+### Deploy in dependency order
+
+Do not apply manifests until the cluster context is correct. The backend image tag below matches `k8s/backend-deployment.yaml`; rebuild and restart it so the running Pod includes the metrics code:
 
 ```powershell
+kubectl config current-context
 kubectl apply -f k8s/namespace.yaml
 kubectl apply -f k8s/configmap.yaml
+docker build -t student-management-backend:security-e64ac36 ./backend
 kubectl apply -f k8s/backend-service.yaml
-kubectl apply -f k8s/frontend-service.yaml
-kubectl apply -f k8s/prometheus-config.yaml
 kubectl apply -f k8s/backend-deployment.yaml
-kubectl apply -f k8s/frontend-deployment.yaml
-kubectl apply -f k8s/prometheus-deployment.yaml
-kubectl apply -f k8s/prometheus-service.yaml
-kubectl rollout status deployment/backend -n student-management --timeout=180s
-kubectl rollout status deployment/prometheus -n student-management --timeout=180s
-```
-
-Prometheus does not automatically reload this mounted file in the current Deployment configuration. After changing the scrape ConfigMap on an existing deployment, restart Prometheus with `kubectl rollout restart deployment/prometheus -n student-management` and wait for its rollout to finish.
-
-`k8s/secret.yaml` has no credentials and is a placeholder. For local use, place `MONGODB_URI` in the ignored `backend/.env` file and create/update the Secret with the earlier `kubectl create secret generic ... --from-env-file=backend/.env` command. Never commit real credentials; the Deployment reads `MONGODB_URI` from the Secret while `configmap.yaml` contains only non-secret settings. After backend code changes, rebuild the manifest's image tag and restart the Deployment so its Pods use the rebuilt image:
-
-```powershell
-docker build -t student-management-backend:k8s-20261027 ./backend
 kubectl rollout restart deployment/backend -n student-management
 kubectl rollout status deployment/backend -n student-management --timeout=180s
 ```
 
-Forward the Prometheus UI port in a terminal:
+Check `student-management-secrets` exists without displaying its data. Then, in one terminal, port-forward the backend and check `/metrics` in another:
+
+```powershell
+kubectl get secret student-management-secrets -n student-management
+kubectl port-forward -n student-management service/backend 5001:5000
+```
+
+```powershell
+(Invoke-WebRequest http://localhost:5001/metrics).Content
+```
+
+Apply Prometheus only after the backend endpoint responds:
+
+```powershell
+kubectl apply -f k8s/prometheus-config.yaml
+kubectl apply -f k8s/prometheus-deployment.yaml
+kubectl apply -f k8s/prometheus-service.yaml
+kubectl rollout status deployment/prometheus -n student-management --timeout=180s
+```
+
+Before deploying Grafana, ensure the existing `grafana-admin` Secret is present and includes the `admin-password` key. `kubectl describe secret` lists key names without revealing values; never use `kubectl get secret -o yaml` for this check. If the Secret is absent, create it from a secure prompt (do not save the password to a file):
+
+```powershell
+$securePassword = Read-Host 'Grafana admin password' -AsSecureString
+$passwordPointer = [Runtime.InteropServices.Marshal]::SecureStringToBSTR($securePassword)
+try {
+    $password = [Runtime.InteropServices.Marshal]::PtrToStringBSTR($passwordPointer)
+    $encodedPassword = [Convert]::ToBase64String([Text.Encoding]::UTF8.GetBytes($password))
+    @"
+apiVersion: v1
+kind: Secret
+metadata:
+  name: grafana-admin
+  namespace: student-management
+type: Opaque
+data:
+  admin-password: $encodedPassword
+"@ | kubectl apply -f -
+}
+finally {
+    [Runtime.InteropServices.Marshal]::ZeroFreeBSTR($passwordPointer)
+    Remove-Variable password, encodedPassword -ErrorAction SilentlyContinue
+    $securePassword.Dispose()
+}
+```
+
+Grafana uses the in-cluster datasource URL `http://prometheus.student-management.svc.cluster.local:9090`, provisions the dashboard from `grafana-dashboard.yaml`, and stores state in the `grafana-data` PVC. Check that the cluster has a default StorageClass; then apply the ConfigMaps, claim, Service, and Deployment:
+
+```powershell
+kubectl get storageclass
+kubectl apply -f k8s/grafana-provisioning.yaml
+kubectl apply -f k8s/grafana-dashboard.yaml
+kubectl apply -f k8s/grafana-storage.yaml
+kubectl apply -f k8s/grafana-service.yaml
+kubectl apply -f k8s/grafana-deployment.yaml
+kubectl rollout status deployment/grafana -n student-management --timeout=180s
+```
+
+### Verify and access
+
+```powershell
+kubectl get deployments,pods,services,pvc -n student-management -o wide
+kubectl get events -n student-management --sort-by=.lastTimestamp
+```
+
+Port-forward Kubernetes Prometheus on local port `9091` and Grafana on local port `13000` (use separate terminals). The separate Docker Compose Prometheus UI uses local port `9090`; Kubernetes Prometheus scrapes the backend through the in-cluster Service DNS name:
 
 ```powershell
 kubectl port-forward -n student-management service/prometheus 9091:9090
+kubectl port-forward -n student-management service/grafana 13000:3000
 ```
 
-Open <http://localhost:9091>, select **Status → Targets**, and confirm `student-management-backend` is `UP`. Port 9091 avoids the local Docker Compose Prometheus UI, which uses port 9090. To query request counts, enter `http_requests_total` in the expression field. Generate traffic with `Invoke-RestMethod http://localhost:8080/api/health` (with the frontend port-forward running) or `kubectl port-forward service/backend 5001:5000 -n student-management` and query `http://localhost:5001/api/health` directly; local development already uses port 5000.
+Check scrape target health and query the backend request counter:
 
-For local Docker Compose monitoring, first start the backend on the host as described in `monitoring/README.md`, then from the repository root run `docker compose -f monitoring/compose.yaml up -d`. Open <http://localhost:9090>. This Compose file runs Prometheus and uses `host.docker.internal:5000` to reach the host backend; Kubernetes uses its Service DNS name.
+```powershell
+$targets = Invoke-RestMethod http://localhost:9091/api/v1/targets
+$targets.data.activeTargets |
+    Where-Object { $_.scrapePool -in @('prometheus', 'student-management-backend') } |
+    Select-Object scrapePool, health, lastError, scrapeUrl
+
+Invoke-RestMethod 'http://localhost:9091/api/v1/query?query=http_requests_total%7Bjob%3D%22student-management-backend%22%7D'
+```
+
+Open <http://localhost:13000>, sign in as `admin` with the password associated with `grafana-admin`, and use **Connections → Data sources → Prometheus → Save & test** to check datasource connectivity. The Grafana health endpoint is <http://localhost:13000/api/health>. The dashboard includes backend request rate, total requests, rates by HTTP status, and p50/p95 latency panels.
+
+Troubleshooting:
+
+- If the backend Pod is not Ready, check `kubectl describe pod` and `kubectl logs deployment/backend -n student-management`; the application must connect to MongoDB before it starts listening. Verify required Secret/config references without printing Secret values.
+- If Prometheus is not Ready, inspect its events/logs and confirm `prometheus-config` is mounted at `/etc/prometheus/prometheus.yml`.
+- If `grafana-data` remains Pending, check `kubectl get storageclass` and configure the cluster's supported default provisioner.
+- If Grafana has `CreateContainerConfigError`, verify the Secret key and `grafana-config` ConfigMap exist; do not print secret data.
+- If the datasource test fails or backend series are absent, check the Prometheus target's `health`/`lastError`, verify the `/metrics` response, and confirm the configured in-cluster Service URL.
+- After editing a provisioning ConfigMap, reapply it and restart the Grafana Deployment so environment-based datasource settings are refreshed.
 
 ## Troubleshooting
 
@@ -125,8 +198,10 @@ For local Docker Compose monitoring, first start the backend on the host as desc
 - Backend restarts or fails readiness: inspect `kubectl logs -n student-management deployment/backend`; check Atlas network access and the local Secret source.
 - `ImagePullBackOff`: rebuild the exact image tag in Docker Desktop and confirm `imagePullPolicy: IfNotPresent`; do not use a remote image name that is not published.
 - Frontend loads but API fails: verify the `backend` Service has a ready endpoint and Nginx's `/api/` proxy configuration remains intact.
-- Prometheus backend target is `DOWN`: check backend readiness and endpoints with `kubectl get pods,services,endpoints -n student-management`; confirm `/metrics` is reachable at `http://backend.student-management.svc.cluster.local:5000/metrics` from inside the cluster and inspect `kubectl logs deployment/prometheus -n student-management`.
 
+## Local Docker Compose monitoring
+
+For host-based local monitoring, start the backend as described in `monitoring/README.md`, then run `docker compose -f monitoring/compose.yaml up -d` from the repository root. Open <http://localhost:9090>. This separate Prometheus instance scrapes `host.docker.internal:5000`; the Kubernetes Prometheus instance scrapes `backend.student-management.svc.cluster.local:5000/metrics` inside the cluster.
 ## Cleanup
 
 Remove only this application's namespace and resources:
