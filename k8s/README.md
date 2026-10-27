@@ -99,6 +99,8 @@ kubectl rollout status deployment/backend -n student-management --timeout=180s
 kubectl rollout status deployment/prometheus -n student-management --timeout=180s
 ```
 
+Prometheus does not automatically reload this mounted file in the current Deployment configuration. After changing the scrape ConfigMap on an existing deployment, restart Prometheus with `kubectl rollout restart deployment/prometheus -n student-management` and wait for its rollout to finish.
+
 `k8s/secret.yaml` has no credentials and is a placeholder. For local use, place `MONGODB_URI` in the ignored `backend/.env` file and create/update the Secret with the earlier `kubectl create secret generic ... --from-env-file=backend/.env` command. Never commit real credentials; the Deployment reads `MONGODB_URI` from the Secret while `configmap.yaml` contains only non-secret settings. After backend code changes, rebuild the manifest's image tag and restart the Deployment so its Pods use the rebuilt image:
 
 ```powershell

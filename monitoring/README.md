@@ -4,7 +4,7 @@
 
 The Express backend exposes `GET /metrics` on port 5000. `src/metrics.js` uses [`@prometheus-io/client`](https://github.com/prometheus/client_js), the official successor to deprecated `prom-client`, with a dedicated Prometheus registry, default Node.js process/runtime metrics, an HTTP request counter, and an HTTP request latency histogram. The dependency was migrated because this repository runs Node 24, which meets the successor's Node.js requirement. Its package name/import changed; upstream also documents behavioral and compatibility changes for gauges, reset behavior, cluster/worker IPC, and TypeScript APIs. This app uses none of those affected features. Prometheus scrapes the endpoint every 15 seconds.
 
-The checked-out `tanvi` branch currently has no backend Docker Compose service or Dockerfile. The included Compose project therefore runs Prometheus in Docker and scrapes a backend running on the host at `host.docker.internal:5000`. Prometheus binds only to `127.0.0.1:9090` on the host. The inspected `origin/main` and `origin/tanu-shree` refs do contain a Docker setup with a backend service named `backend`, port 5000, and a default Compose network; that deployment has not been merged into this branch. `prometheus.docker.yml` provides the corresponding `backend:5000` scrape target for use once Prometheus is attached to that same Compose network.
+The repository includes a backend Dockerfile and a root Docker Compose project with a `backend` service publishing port 5000. The separate monitoring Compose project runs Prometheus and scrapes `host.docker.internal:5000`, so it works with either the backend started on the host with `npm run dev` or the root Compose backend container. Prometheus binds only to `127.0.0.1:9090` on the host. `prometheus.docker.yml` provides the `backend:5000` target for use when Prometheus is attached to the root Compose project's network; the separate monitoring Compose project does not join that network automatically.
 
 ## Start the backend
 
@@ -96,4 +96,4 @@ Kubernetes manifests are under `k8s/`. Apply `namespace.yaml`, the application C
 
 ## Limitations
 
-Prometheus startup and scraping must be verified in an environment with a reachable Docker daemon and a running backend. Kubernetes scraping remains pending the service details from the Kubernetes owner. The current repository has no Compose definition for the application itself, so local Prometheus uses host-gateway networking.
+Prometheus startup and scraping must be verified in an environment with a reachable Docker daemon and a running backend. Kubernetes manifests and an in-cluster scrape target are present, but live Kubernetes scraping has not been verified in this environment. The monitoring Compose project uses host-gateway networking; the Kubernetes Prometheus Deployment uses the backend Service DNS name.
