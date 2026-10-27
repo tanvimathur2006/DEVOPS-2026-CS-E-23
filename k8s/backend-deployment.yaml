@@ -20,7 +20,7 @@ spec:
     spec:
       containers:
         - name: backend
-          image: student-management-backend:k8s-20261027
+          image: student-management-backend:security-e64ac36
           imagePullPolicy: IfNotPresent
           ports:
             - name: http
