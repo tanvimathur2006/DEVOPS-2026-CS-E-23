@@ -84,7 +84,7 @@ HTTP series use `method`, normalized `route`, and final `status_code` labels. Ex
 
 ## Kubernetes integration
 
-There are no Kubernetes manifests in this checkout, so Kubernetes scraping has not been configured or verified. Coordinate with Tanu Shree before adding or renaming shared resources. The integration needs the exact backend `Service` name, namespace, and service port (or named port), plus confirmation that `/metrics` is reachable through that Service. Configure Prometheus with the resulting in-cluster DNS target, for example `<service>.<namespace>.svc:<port>`, and `metrics_path: /metrics`. Do not put Atlas credentials or other application secrets in Prometheus configuration.
+Kubernetes manifests are under `k8s/`. Apply `namespace.yaml`, the application ConfigMap and Services, `prometheus-config.yaml`, then the Deployments and `prometheus-service.yaml` as documented in `k8s/README.md`. The Prometheus ConfigMap scrapes `backend.student-management.svc.cluster.local:5000/metrics`; the backend Service selects Pods in the `student-management` namespace. The Prometheus Service is internal; use `kubectl port-forward -n student-management service/prometheus 9090:9090` for local UI access. Do not put Atlas credentials or other application secrets in Prometheus configuration.
 
 ## Troubleshooting
 
