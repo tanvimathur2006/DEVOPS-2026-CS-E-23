@@ -1,0 +1,43 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: grafana-provisioning
+  namespace: student-management
+  labels:
+    app.kubernetes.io/name: student-management-grafana
+    app.kubernetes.io/part-of: student-management-system
+data:
+  datasources.yaml: |
+    apiVersion: 1
+    datasources:
+      - name: Prometheus
+        uid: prometheus
+        type: prometheus
+        access: proxy
+        url: ${PROMETHEUS_URL}
+        isDefault: true
+        editable: true
+        jsonData:
+          httpMethod: GET
+  dashboards.yaml: |
+    apiVersion: 1
+    providers:
+      - name: Student Management
+        orgId: 1
+        folder: Student Management
+        type: file
+        disableDeletion: true
+        editable: true
+        options:
+          path: /var/lib/grafana/dashboards
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: grafana-config
+  namespace: student-management
+  labels:
+    app.kubernetes.io/name: student-management-grafana
+    app.kubernetes.io/part-of: student-management-system
+data:
+  PROMETHEUS_URL: http://prometheus.student-management.svc.cluster.local:9090
