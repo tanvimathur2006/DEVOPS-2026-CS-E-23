@@ -178,7 +178,7 @@ describe("StudentContext", () => {
     await screen.findByText("Loaded");
 
     expect(fetchMock).toHaveBeenCalledWith(
-      "http://localhost:5000/api/students"
+      "/api/students"
     );
   });
 
@@ -249,7 +249,7 @@ describe("StudentContext", () => {
     expect(postCall).toBeDefined();
 
     expect(postCall[0]).toBe(
-      "http://localhost:5000/api/students"
+      "/api/students"
     );
 
     expect(postCall[1].headers).toEqual({
@@ -324,7 +324,7 @@ describe("StudentContext", () => {
     expect(putCall).toBeDefined();
 
     expect(putCall[0]).toBe(
-      "http://localhost:5000/api/students/507f1f77bcf86cd799439011"
+      "/api/students/507f1f77bcf86cd799439011"
     );
 
     expect(putCall[1].method).toBe("PUT");
@@ -400,7 +400,7 @@ describe("StudentContext", () => {
     expect(deleteCall).toBeDefined();
 
     expect(deleteCall[0]).toBe(
-      "http://localhost:5000/api/students/507f1f77bcf86cd799439011"
+      "/api/students/507f1f77bcf86cd799439011"
     );
 
     expect(deleteCall[1].method).toBe("DELETE");

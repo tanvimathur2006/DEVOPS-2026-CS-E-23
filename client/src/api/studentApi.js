@@ -1,4 +1,6 @@
-const API_URL = "/api/students";
+import { API_BASE_URL } from "./config.js";
+
+const API_URL = `${API_BASE_URL}/students`;
 const handleResponse = async (response) => {
   const data = await response.json();
 
