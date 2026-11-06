@@ -182,6 +182,180 @@ a:focus-visible {
   -webkit-overflow-scrolling: touch;
 }
 
+.btn-primary {
+  background-color: #2563eb;
+  color: #fff;
+  box-shadow: 0 1px 2px rgba(15, 23, 42, 0.12);
+}
+
+.btn-primary:hover:not(:disabled) {
+  background-color: #1d4ed8;
+  box-shadow: 0 4px 10px rgba(37, 99, 235, 0.2);
+}
+
+.btn-secondary {
+  background-color: #fff;
+  border-color: #cbd5e1;
+  color: #334155;
+}
+
+.btn-secondary:hover:not(:disabled) {
+  background-color: #f8fafc;
+  border-color: #94a3b8;
+}
+
+.students-page-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 16px 24px;
+}
+
+.students-page [role="status"] {
+  display: grid;
+  justify-items: start;
+  gap: 12px;
+  padding: 24px;
+  background: #fff;
+  border: 1px solid #e2e8f0;
+  border-radius: 12px;
+  color: #64748b;
+}
+
+.students-page [role="status"] p:first-child {
+  color: #1e293b;
+  font-size: 18px;
+  font-weight: 600;
+}
+
+.student-form-card {
+  width: 100%;
+  max-width: 900px;
+  padding: 28px;
+  border-radius: 14px;
+  box-shadow: 0 8px 24px rgba(15, 23, 42, 0.06);
+}
+
+.student-form-card .card-header {
+  padding-bottom: 18px;
+  margin-bottom: 24px;
+  border-bottom: 1px solid #e5e7eb;
+}
+
+.student-form-card .card-header h2 {
+  color: #1e293b;
+  font-size: 20px;
+  letter-spacing: -0.01em;
+}
+
+.student-form {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 20px 22px;
+}
+
+.form-field {
+  min-width: 0;
+}
+
+.form-field-full,
+.form-actions {
+  grid-column: 1 / -1;
+}
+
+.form-field label {
+  display: block;
+  margin-bottom: 7px;
+  color: #334155;
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.student-form input,
+.student-form select,
+.student-form textarea {
+  min-height: 44px;
+  padding: 10px 12px;
+  border-color: #cbd5e1;
+  border-radius: 8px;
+  color: #1e293b;
+  background-color: #fff;
+}
+
+.student-form input::placeholder,
+.student-form textarea::placeholder {
+  color: #94a3b8;
+}
+
+.student-form input:focus,
+.student-form select:focus,
+.student-form textarea:focus {
+  border-color: #2563eb;
+  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.14);
+}
+
+.student-form textarea {
+  min-height: 104px;
+  resize: vertical;
+}
+
+.form-actions {
+  display: flex;
+  justify-content: flex-end;
+  flex-wrap: wrap;
+  gap: 12px;
+  padding-top: 4px;
+}
+
+.form-error {
+  margin: -4px 0 20px;
+  padding: 12px 14px;
+  border: 1px solid #fecaca;
+  border-radius: 8px;
+  background: #fef2f2;
+  color: #b91c1c;
+  font-size: 14px;
+  line-height: 1.5;
+}
+
+.student-form .btn {
+  min-width: 132px;
+}
+
+.student-form .btn:disabled {
+  cursor: not-allowed;
+  opacity: 0.6;
+}
+
+@media (max-width: 600px) {
+  .students-page-header {
+    align-items: flex-start;
+  }
+
+  .student-form-card {
+    padding: 20px;
+  }
+
+  .student-form {
+    grid-template-columns: 1fr;
+    gap: 18px;
+  }
+
+  .form-field-full,
+  .form-actions {
+    grid-column: auto;
+  }
+
+  .form-actions {
+    justify-content: stretch;
+  }
+
+  .form-actions .btn {
+    flex: 1 1 140px;
+  }
+}
+
 .data-table {
   width: 100%;
   border-collapse: collapse;

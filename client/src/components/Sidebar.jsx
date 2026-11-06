@@ -1,6 +1,11 @@
-import { NavLink } from "react-router-dom";
+import { Link, NavLink, useLocation } from "react-router-dom";
 
 function Sidebar() {
+  const { pathname } = useLocation();
+  const studentsSectionActive =
+    pathname === "/students" ||
+    (pathname.startsWith("/students/") && pathname !== "/students/add");
+
   return (
     <aside className="sidebar">
       <div className="sidebar-title">
@@ -10,20 +15,23 @@ function Sidebar() {
       <nav className="sidebar-nav" aria-label="Main navigation">
         <NavLink
           to="/"
+          end
           className={({ isActive }) => (isActive ? "sidebar-link active" : "sidebar-link")}
         >
           Dashboard
         </NavLink>
 
-        <NavLink
+        <Link
           to="/students"
-          className={({ isActive }) => (isActive ? "sidebar-link active" : "sidebar-link")}
+          aria-current={studentsSectionActive ? "page" : undefined}
+          className={`sidebar-link${studentsSectionActive ? " active" : ""}`}
         >
           Students
-        </NavLink>
+        </Link>
 
         <NavLink
           to="/students/add"
+          end
           className={({ isActive }) => (isActive ? "sidebar-link active" : "sidebar-link")}
         >
           Add Student
