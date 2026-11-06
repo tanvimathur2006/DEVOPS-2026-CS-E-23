@@ -40,6 +40,10 @@ spec:
                 secretKeyRef:
                   name: grafana-admin
                   key: admin-password
+            - name: GF_AUTH_ANONYMOUS_ENABLED
+              value: "false"
+            - name: GF_AUTH_ANONYMOUS_ORG_ROLE
+              value: Viewer
             - name: PROMETHEUS_URL
               valueFrom:
                 configMapKeyRef:

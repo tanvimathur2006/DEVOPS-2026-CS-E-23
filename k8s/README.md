@@ -183,6 +183,45 @@ Invoke-RestMethod 'http://localhost:9091/api/v1/query?query=http_requests_total%
 
 Open <http://localhost:13000>, sign in as `admin` with the password associated with `grafana-admin`, and use **Connections → Data sources → Prometheus → Save & test** to check datasource connectivity. The Grafana health endpoint is <http://localhost:13000/api/health>. The dashboard includes backend request rate, total requests, rates by HTTP status, and p50/p95 latency panels.
 
+### Grafana access modes
+
+The checked-in `grafana-deployment.yaml` keeps anonymous access disabled and reads the admin password from the existing `grafana-admin` Secret. The Grafana Service remains `ClusterIP`; use the port-forward above for local access. Do not expose Grafana through a public Service.
+
+#### 1. No User (anonymous demo)
+
+For a temporary, read-only demonstration, apply the tracked opt-in patch. It enables anonymous access only with the organization role `Viewer`:
+
+```powershell
+kubectl patch deployment grafana -n student-management --type=strategic --patch-file=k8s/grafana-anonymous-demo-patch.yaml
+kubectl rollout status deployment/grafana -n student-management --timeout=180s
+```
+
+With the Grafana port-forward running, open <http://localhost:13000> in a private/incognito window. The dashboard should load without a login prompt. Confirm that dashboard editing and user administration are unavailable. Viewer access is read-only; anonymous access must not be assigned `Editor` or `Admin`.
+
+Disable the demo and restore authenticated access by applying the baseline Deployment, which explicitly sets anonymous access to `false`:
+
+```powershell
+kubectl apply -f k8s/grafana-deployment.yaml
+kubectl rollout status deployment/grafana -n student-management --timeout=180s
+```
+
+#### 2. Single User (admin login)
+
+Keep the baseline Deployment applied (anonymous access disabled). Sign in as `admin` using the password already held in the `grafana-admin` Secret. The Deployment continues to read the password through its Secret reference; do not put it in a manifest, command, or repository file.
+
+To test this mode, open Grafana in a private/incognito window and confirm it presents a login prompt. Sign in with the existing admin credentials and verify the provisioned dashboard and Prometheus datasource. Do not retrieve or print the Secret value.
+
+#### 3. Multi-User (individual accounts)
+
+Keep anonymous access disabled. Sign in as `admin`, then open **Administration → Users and access → Users → New user**. Create a separate account for each person and assign the least-privileged organization role that fits:
+
+- **Viewer** can view dashboards and query data, but cannot edit dashboards or manage users.
+- **Editor** can create and edit dashboards, but is not a Grafana server administrator.
+
+Do not grant organization `Admin` or server administrator access for ordinary dashboard use. Set each user's password through Grafana's UI and deliver it securely; do not invent, share, or commit credentials. For an existing account, use the same Users page to change its organization role.
+
+To verify, create accounts only when approved by the Grafana owner, then test each in a separate private/incognito session: Viewer should be able to view the dashboard but not save edits; Editor should be able to edit dashboards but not administer users. The `admin` account remains available through the existing Secret-backed login.
+
 Troubleshooting:
 
 - If the backend Pod is not Ready, check `kubectl describe pod` and `kubectl logs deployment/backend -n student-management`; the application must connect to MongoDB before it starts listening. Verify required Secret/config references without printing Secret values.
