@@ -27,7 +27,7 @@ function Students() {
 
   if (loading) {
     return (
-      <section aria-labelledby="students-heading">
+      <section className="students-page" aria-labelledby="students-heading">
         <h1 id="students-heading">Students</h1>
         <p role="status">Loading students...</p>
       </section>
@@ -36,7 +36,7 @@ function Students() {
 
   if (error) {
     return (
-      <section aria-labelledby="students-heading">
+      <section className="students-page" aria-labelledby="students-heading">
         <h1 id="students-heading">Students</h1>
 
         <div role="alert">
@@ -55,27 +55,31 @@ function Students() {
 
   if (students.length === 0) {
     return (
-      <section aria-labelledby="students-heading">
+      <section className="students-page" aria-labelledby="students-heading">
         <h1 id="students-heading">Students</h1>
 
         <div role="status" aria-live="polite">
           <p>No student records found.</p>
           <p>There are no student records available yet.</p>
-          <Link to="/students/add">Add a student</Link>
+          <Link className="btn btn-primary" to="/students/add">
+            Add a student
+          </Link>
         </div>
       </section>
     );
   }
 
   return (
-    <section aria-labelledby="students-heading">
-      <div className="page-header">
+    <section className="students-page" aria-labelledby="students-heading">
+      <div className="page-header students-page-header">
         <div>
           <h1 id="students-heading">Students</h1>
           <p>Manage student records.</p>
         </div>
 
-        <Link to="/students/add">Add Student</Link>
+        <Link className="btn btn-primary" to="/students/add">
+          Add Student
+        </Link>
       </div>
 
       <div

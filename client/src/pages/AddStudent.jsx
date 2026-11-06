@@ -100,19 +100,19 @@ function AddStudent() {
         </div>
       </div>
 
-      <div className="dashboard-card">
+      <div className="dashboard-card student-form-card">
         <div className="card-header">
           <h2>Student Information</h2>
         </div>
 
         {error && (
-          <p role="alert">
+          <p className="form-error" role="alert">
             {error}
           </p>
         )}
 
-        <form onSubmit={handleSubmit}>
-          <div>
+        <form className="student-form" onSubmit={handleSubmit}>
+          <div className="form-field">
             <label htmlFor="studentId">Student ID</label>
             <input
               id="studentId"
@@ -124,7 +124,7 @@ function AddStudent() {
             />
           </div>
 
-          <div>
+          <div className="form-field">
             <label htmlFor="name">Name</label>
             <input
               id="name"
@@ -136,7 +136,7 @@ function AddStudent() {
             />
           </div>
 
-          <div>
+          <div className="form-field">
             <label htmlFor="email">Email</label>
             <input
               id="email"
@@ -148,7 +148,7 @@ function AddStudent() {
             />
           </div>
 
-          <div>
+          <div className="form-field">
             <label htmlFor="phone">Phone</label>
             <input
               id="phone"
@@ -160,7 +160,7 @@ function AddStudent() {
             />
           </div>
 
-          <div>
+          <div className="form-field">
             <label htmlFor="branch">Branch</label>
             <select
               id="branch"
@@ -179,7 +179,7 @@ function AddStudent() {
             </select>
           </div>
 
-          <div>
+          <div className="form-field">
             <label htmlFor="year">Year</label>
             <select
               id="year"
@@ -196,7 +196,7 @@ function AddStudent() {
             </select>
           </div>
 
-          <div>
+          <div className="form-field">
             <label htmlFor="gender">Gender</label>
             <select
               id="gender"
@@ -212,7 +212,7 @@ function AddStudent() {
             </select>
           </div>
 
-          <div>
+          <div className="form-field">
             <label htmlFor="dateOfBirth">Date of Birth</label>
             <input
               id="dateOfBirth"
@@ -224,7 +224,7 @@ function AddStudent() {
             />
           </div>
 
-          <div>
+          <div className="form-field form-field-full">
             <label htmlFor="address">Address</label>
             <textarea
               id="address"
@@ -235,11 +235,12 @@ function AddStudent() {
             />
           </div>
 
-          <div>
-            <button type="submit">Add Student</button>
+          <div className="form-actions">
+            <button className="btn btn-primary" type="submit">Add Student</button>
 
             <button
               type="button"
+              className="btn btn-secondary"
               onClick={() => navigate("/students")}
             >
               Cancel
