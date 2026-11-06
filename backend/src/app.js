@@ -1,12 +1,13 @@
 const express = require("express");
 const cors = require("cors");
 
+const { createCorsOptions } = require("./config/cors");
 const { metricsMiddleware, metricsHandler } = require("./metrics");
 const studentRoutes = require("./routes/studentRoutes");
 
 const app = express();
 
-app.use(cors());
+app.use(cors(createCorsOptions()));
 app.use(metricsMiddleware);
 app.use(express.json());
 

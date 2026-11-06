@@ -254,7 +254,7 @@ describe("Add Student page", () => {
 
     await waitFor(() => {
       expect(fetch).toHaveBeenCalledWith(
-        "http://localhost:5000/api/students",
+        "/api/students",
         expect.objectContaining({
           method: "POST",
           headers: {

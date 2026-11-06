@@ -13,6 +13,8 @@ services:
   client:
     build:
       context: ./client
+      args:
+        VITE_API_BASE_URL: ${VITE_API_BASE_URL:-/api}
     container_name: student-management-client
     ports:
       - "80:80"
